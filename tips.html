@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Laureate Essays | Expert Tips & Testimonials</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -66,6 +66,7 @@
             -webkit-text-fill-color: initial;
         }
 
+        /* Desktop navigation (horizontal) */
         .nav-links {
             display: flex;
             list-style: none;
@@ -100,6 +101,132 @@
         .nav-links a:hover::after,
         .nav-links a.active::after {
             width: 100%;
+        }
+
+        /* Mobile sidebar overlay + drawer */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.96);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .mobile-sidebar.open {
+            transform: translateX(0);
+        }
+        .mobile-sidebar .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .mobile-sidebar .sidebar-logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #a5b4fc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .mobile-sidebar .close-sidebar {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .mobile-sidebar .close-sidebar:hover {
+            color: var(--text-main);
+        }
+        .mobile-nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 0;
+        }
+        .mobile-nav-list li a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 500;
+            display: block;
+            padding: 0.5rem 0;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            padding-left: 1rem;
+        }
+        .mobile-nav-list li a:hover,
+        .mobile-nav-list li a.active {
+            color: var(--text-main);
+            border-left-color: var(--accent-gp);
+            background: rgba(255,255,255,0.03);
+        }
+        /* Hamburger button */
+        .menu-toggle {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 0.6rem 0.9rem;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+            font-size: 1.4rem;
+            backdrop-filter: blur(4px);
+            z-index: 1002;
+        }
+        .menu-toggle:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(99,102,241,0.5);
+        }
+
+        /* Hide desktop nav on mobile, show hamburger */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none !important;
+            }
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .tips-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Main content */
@@ -237,10 +364,9 @@
             text-decoration: none;
         }
 
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .page-header h1 { font-size: 2rem; }
-            .tips-grid { grid-template-columns: 1fr; }
+        /* prevent body scroll when sidebar open */
+        body.sidebar-open {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -248,6 +374,11 @@
     <header>
         <nav class="nav-container">
             <div class="logo">Laureate<span>Essays.</span></div>
+            <!-- MOBILE HAMBURGER BUTTON -->
+            <div class="menu-toggle" id="mobileMenuToggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </div>
+            <!-- Desktop navigation -->
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="login.html">Login</a></li>
@@ -255,6 +386,20 @@
             </ul>
         </nav>
     </header>
+
+    <!-- Mobile Left Sidebar + Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-logo">Laureate<span style="color:var(--accent-gp);">Essays</span></span>
+            <button class="close-sidebar" id="closeSidebarBtn">&times;</button>
+        </div>
+        <ul class="mobile-nav-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="tips.html" class="active">Tips</a></li>
+        </ul>
+    </div>
 
     <main>
         <div class="container">
@@ -315,8 +460,6 @@
                 <div class="author">— Abyan Coan Dulloo</div>
                 <div class="title">Youngest Laureate of Mauritius (HSC Cambridge)</div>
             </div>
-
-            <!-- You can add a second testimonial if needed -->
         </div>
     </main>
 
@@ -325,14 +468,94 @@
         <p style="margin-top: 0.5rem;"><i class="fa-regular fa-gem"></i> Designed for Cambridge A-Level excellence in Mauritius.</p>
     </footer>
 
-    <!-- Simple script to set active nav link (already set by class, but ensure consistency) -->
+    <!-- Mobile sidebar script (identical to index.html for consistency) -->
     <script>
-        // Optional: Highlight nav based on current page
+        (function initMobileSidebar() {
+            function init() {
+                const hamburger = document.getElementById('mobileMenuToggle');
+                const sidebar = document.getElementById('mobileSidebar');
+                const overlay = document.getElementById('menuOverlay');
+                const closeBtn = document.getElementById('closeSidebarBtn');
+                const body = document.body;
+                const mobileLinks = document.querySelectorAll('.mobile-nav-list a');
+
+                if (!hamburger || !sidebar || !overlay) return;
+
+                // Force close any leftover open state
+                function forceCloseSidebar() {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    body.classList.remove('sidebar-open');
+                    const icon = hamburger.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                }
+
+                function openSidebar() {
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                    body.classList.add('sidebar-open');
+                    const icon = hamburger.querySelector('i');
+                    if (icon) icon.className = 'fas fa-times';
+                }
+
+                function closeSidebar() {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    body.classList.remove('sidebar-open');
+                    const icon = hamburger.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                }
+
+                // Ensure clean start
+                forceCloseSidebar();
+
+                hamburger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (sidebar.classList.contains('open')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+
+                if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
+
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        closeSidebar();
+                    });
+                });
+
+                // On window resize, if desktop size force close
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 769) {
+                        closeSidebar();
+                    }
+                });
+
+                // Handle browser back/forward cache (pageshow)
+                window.addEventListener('pageshow', function(event) {
+                    if (event.persisted) {
+                        forceCloseSidebar();
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+
+        // Optional: Highlight nav based on current page (ensures active state on sidebar as well)
         const currentPage = window.location.pathname.split('/').pop();
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) {
+        document.querySelectorAll('.nav-links a, .mobile-nav-list a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === currentPage) {
                 link.classList.add('active');
-            } else if (currentPage === '' && link.getAttribute('href') === 'index.html') {
+            } else if (currentPage === '' && href === 'index.html') {
                 link.classList.add('active');
             }
         });
