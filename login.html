@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Laureate Essays | Authentication & Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 30%, #0f172a, #0a0f2a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .glass-card {
+            background: rgba(18, 25, 45, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 32px;
+            width: 100%;
+            max-width: 520px;
+            padding: 2rem;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+        }
+
+        .dashboard-card {
+            max-width: 600px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 60px;
+            padding: 0.35rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 40px;
+            color: #9ca3af;
+            background: transparent;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(105deg, #4f46e5, #6366f1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.3rem;
+        }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #cbd5e1;
+        }
+        input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: #0f172acc;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            color: #f1f5f9;
+            font-size: 0.95rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
+        }
+        .btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(95deg, #4f46e5, #6366f1);
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            background: linear-gradient(95deg, #6366f1, #818cf8);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-logout {
+            background: rgba(239,68,68,0.8);
+            margin-top: 1rem;
+        }
+        .btn-logout:hover {
+            background: #ef4444;
+        }
+        .status-message {
+            margin-top: 1.2rem;
+            padding: 0.8rem;
+            border-radius: 28px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        .status-message.success {
+            display: block;
+            background: rgba(16,185,129,0.12);
+            color: #2dd4bf;
+            border: 1px solid #2dd4bf50;
+        }
+        .status-message.error {
+            display: block;
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+            border: 1px solid #f8717150;
+        }
+        .small-note {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 1.4rem;
+            color: #6c7a91;
+        }
+        .user-info {
+            background: rgba(99,102,241,0.1);
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 3px solid #6366f1;
+        }
+        .user-info p {
+            margin: 0.5rem 0;
+            color: #cbd5e1;
+        }
+        .user-info strong {
+            color: white;
+        }
+        hr {
+            border-color: #334155;
+            margin: 1rem 0;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .welcome-icon {
+            font-size: 2rem;
+            color: #6366f1;
+        }
+        .reg-field {
+            display: none;
+        }
+        .reg-field.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div id="appRoot" style="width:100%; max-width:600px;"></div>
+
+<script>
+    (function() {
+        const SUPABASE_URL = "https://tlkrykpqsfeuidgvwhtt.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsa3J5a3Bxc2ZldWlkZ3Z3aHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDE5MzcsImV4cCI6MjA5NTk3NzkzN30.-vLZx-PlPFwCuz9ckCQ_0-ObMNRs1Kqk6gM1cnVAZFs";
+        
+        if (typeof supabase === 'undefined' && typeof window.supabase === 'undefined') {
+            document.getElementById('appRoot').innerHTML = '<div class="glass-card"><div class="status-message error" style="display:block;">Critical Error: Supabase failed to load.</div></div>';
+            return;
+        }
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let userProfile = null;
+
+        async function render() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
+            
+            if (currentUser) {
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .select('full_name, school')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (!error && data) {
+                    userProfile = data;
+                } else {
+                    userProfile = { full_name: currentUser.email, school: 'Not specified' };
+                }
+                renderDashboard();
+            } else {
+                renderAuthForm();
+            }
+        }
+
+        function renderDashboard() {
+    const app = document.getElementById('appRoot');
+    app.innerHTML = `
+        <div class="glass-card dashboard-card">
+            <div class="flex-between">
+                <h2 style="color:white;"><i class="fa-regular fa-gem"></i> Laureate Essays</h2>
+                <i class="fa-regular fa-circle-user welcome-icon"></i>
+            </div>
+            <div class="user-info">
+                <p><i class="fa-regular fa-user"></i> <strong>${escapeHtml(userProfile?.full_name || currentUser.email)}</strong></p>
+                <p><i class="fa-regular fa-envelope"></i> ${escapeHtml(currentUser.email)}</p>
+                <p><i class="fa-regular fa-building-columns"></i> ${escapeHtml(userProfile?.school || '—')}</p>
+                <p><i class="fa-regular fa-clock"></i> Member since: ${new Date(currentUser.created_at).toLocaleDateString()}</p>
+            </div>
+            <hr>
+            <p style="color:#a5b4fc; margin-bottom:1rem;">Welcome to your dashboard. You are securely logged in.</p>
+            <button id="logoutBtn" class="btn btn-logout"><i class="fa-regular fa-arrow-right-from-bracket"></i> Logout</button>
+            <button id="homepageBtn" class="btn" style="margin-top: 0.8rem; background: linear-gradient(95deg, #4f46e5, #6366f1);"><i class="fa-regular fa-house"></i> Go to Essays</button>
+            <div class="small-note"><i class="fa-regular fa-shield"></i> Session is active</div>
+        </div>
+    `;
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await supabaseClient.auth.signOut();
+        render();
+    });
+    document.getElementById('homepageBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+}
+
+        function renderAuthForm() {
+            const app = document.getElementById('appRoot');
+            app.innerHTML = `
+                <div class="glass-card">
+                    <div class="auth-tabs">
+                        <button id="loginTabBtn" class="tab-btn active"><i class="fa-regular fa-keyboard"></i> Sign In</button>
+                        <button id="registerTabBtn" class="tab-btn"><i class="fa-regular fa-user-plus"></i> Register</button>
+                    </div>
+                    <form id="unifiedForm" novalidate>
+                        <div id="regFields" class="reg-field">
+                            <div class="form-group">
+                                <label><i class="fa-regular fa-user"></i> Full Name</label>
+                                <input type="text" id="fullName" placeholder="Olivia Rodriguez">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa-regular fa-building-columns"></i> School / College</label>
+                                <input type="text" id="school" placeholder="e.g., Royal College">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-regular fa-envelope"></i> Email Address</label>
+                            <input type="email" id="email" required placeholder="student@laureate.edu">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-regular fa-lock"></i> Password</label>
+                            <input type="password" id="password" required minlength="6" placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn" id="actionBtn">Sign In</button>
+                    </form>
+                    <div class="status-message" id="authStatus"></div>
+                    <div class="small-note"><i class="fa-regular fa-shield"></i> Secured by Laureate Auth</div>
+                </div>
+            `;
+
+            const loginTab = document.getElementById('loginTabBtn');
+            const registerTab = document.getElementById('registerTabBtn');
+            const regFields = document.getElementById('regFields');
+            const actionBtn = document.getElementById('actionBtn');
+            const form = document.getElementById('unifiedForm');
+            const statusDiv = document.getElementById('authStatus');
+
+            let isRegisterMode = false;
+
+            function showStatus(msg, type) {
+                statusDiv.textContent = msg;
+                statusDiv.className = `status-message ${type}`;
+                statusDiv.style.display = 'block';
+                console.log(`[${type}] ${msg}`);
+            }
+            function clearStatus() { statusDiv.style.display = 'none'; statusDiv.textContent = ''; }
+
+            function setTab(mode) {
+                isRegisterMode = mode;
+                if (mode) {
+                    loginTab.classList.remove('active');
+                    registerTab.classList.add('active');
+                    regFields.classList.add('visible');
+                    actionBtn.textContent = 'Create Account';
+                } else {
+                    registerTab.classList.remove('active');
+                    loginTab.classList.add('active');
+                    regFields.classList.remove('visible');
+                    actionBtn.textContent = 'Sign In';
+                }
+                clearStatus();
+                actionBtn.disabled = false;
+            }
+
+            loginTab.addEventListener('click', () => setTab(false));
+            registerTab.addEventListener('click', () => setTab(true));
+            // Initialize to login mode
+            setTab(false);
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearStatus();
+                actionBtn.disabled = true;
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !email.includes('@')) {
+                    showStatus("Valid email required.", "error");
+                    actionBtn.disabled = false;
+                    return;
+                }
+                if (password.length < 6) {
+                    showStatus("Password must be at least 6 characters.", "error");
+                    actionBtn.disabled = false;
+                    return;
+                }
+
+                if (!isRegisterMode) {
+                    // Sign In
+                    showStatus("Signing in...", "success");
+                    try {
+                        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                        if (error) {
+                            showStatus(error.message, "error");
+                            actionBtn.disabled = false;
+                        } else {
+                            showStatus("Login successful! Redirecting...", "success");
+                            render(); // will show dashboard
+                        }
+                    } catch (err) {
+                        showStatus("Network error.", "error");
+                        actionBtn.disabled = false;
+                    }
+                    return;
+                }
+
+                // Register mode
+                const fullName = document.getElementById('fullName').value.trim();
+                const school = document.getElementById('school').value.trim();
+                if (!fullName) {
+                    showStatus("Full name required.", "error");
+                    actionBtn.disabled = false;
+                    return;
+                }
+                if (!school) {
+                    showStatus("School/College required.", "error");
+                    actionBtn.disabled = false;
+                    return;
+                }
+
+                showStatus("Creating account...", "success");
+                try {
+                    const { data: authData, error: signUpError } = await supabaseClient.auth.signUp({
+                        email, password,
+                        options: { data: { full_name: fullName, school: school } }
+                    });
+                    if (signUpError) {
+                        showStatus(signUpError.message, "error");
+                        actionBtn.disabled = false;
+                        return;
+                    }
+                    const user = authData.user;
+                    if (!user) {
+                        showStatus("Sign-up failed.", "error");
+                        actionBtn.disabled = false;
+                        return;
+                    }
+
+                    // Insert into custom users table
+                    const { error: insertError } = await supabaseClient
+                        .from('users')
+                        .insert([{ id: user.id, full_name: fullName, email: email, school: school }]);
+                    
+                    if (insertError) {
+                        console.error("Insert error:", insertError);
+                        showStatus("Account created but profile save failed. Please sign in.", "error");
+                        actionBtn.disabled = false;
+                        return;
+                    }
+                    showStatus("Registration successful! Please sign in.", "success");
+                    setTimeout(() => {
+                        setTab(false); // switch to login tab
+                        document.getElementById('fullName').value = '';
+                        document.getElementById('school').value = '';
+                        document.getElementById('password').value = '';
+                        document.getElementById('email').value = '';
+                        clearStatus();
+                        showStatus("✅ Account ready! Sign in below.", "success");
+                        actionBtn.disabled = false;
+                    }, 1500);
+                } catch (err) {
+                    console.error(err);
+                    showStatus("Unexpected error.", "error");
+                    actionBtn.disabled = false;
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        render();
+        supabaseClient.auth.onAuthStateChange(() => { render(); });
+    })();
+</script>
+</body>
+</html>
