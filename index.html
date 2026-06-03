@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Laureate Essays | HSC English GP & French Sub</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/png" href="https://images.squarespace-cdn.com/content/v1/56cf01804c2f8546b38da152/1535738870183-BUP4D3H69B8K1XNZ648Q/graduation-cap.png">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -66,6 +67,7 @@
             -webkit-text-fill-color: initial;
         }
 
+        /* Desktop navigation (horizontal) */
         .nav-links {
             display: flex;
             list-style: none;
@@ -84,6 +86,133 @@
             color: var(--text-main);
         }
 
+        /* Mobile sidebar overlay + drawer */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+ backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.96);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .mobile-sidebar.open {
+            transform: translateX(0);
+        }
+        .mobile-sidebar .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .mobile-sidebar .sidebar-logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #a5b4fc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .mobile-sidebar .close-sidebar {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .mobile-sidebar .close-sidebar:hover {
+            color: var(--text-main);
+        }
+        .mobile-nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 0;
+        }
+        .mobile-nav-list li a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 500;
+            display: block;
+            padding: 0.5rem 0;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            padding-left: 1rem;
+        }
+        .mobile-nav-list li a:hover,
+        .mobile-nav-list li a.active {
+            color: var(--text-main);
+            border-left-color: var(--accent-gp);
+            background: rgba(255,255,255,0.03);
+        }
+        /* Hamburger button */
+        .menu-toggle {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 0.6rem 0.9rem;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+            font-size: 1.4rem;
+            backdrop-filter: blur(4px);
+            z-index: 1002;
+        }
+        .menu-toggle:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(99,102,241,0.5);
+        }
+
+        /* Hide desktop nav on mobile, show hamburger */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none !important;
+            }
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Hero & other sections unchanged */
         .hero {
             min-height: 85vh;
             display: flex;
@@ -92,12 +221,10 @@
             text-align: center;
             padding: 8rem 2rem 4rem;
         }
-
         .hero-content {
             max-width: 800px;
             animation: fadeInUp 1s ease forwards;
         }
-
         .badge {
             background: rgba(99, 102, 241, 0.15);
             border: 1px solid rgba(99, 102, 241, 0.3);
@@ -109,32 +236,27 @@
             display: inline-block;
             margin-bottom: 1.5rem;
         }
-
         .hero h1 {
             font-size: 3.5rem;
             font-weight: 800;
             margin-bottom: 1.5rem;
         }
-
         .typewriter {
             color: var(--accent-gp);
             border-right: 2px solid var(--accent-gp);
             animation: blink 0.75s step-end infinite;
             white-space: nowrap;
         }
-
         .hero p {
             font-size: 1.2rem;
             color: var(--text-muted);
             margin-bottom: 2.5rem;
         }
-
         .cta-buttons {
             display: flex;
             gap: 1.5rem;
             justify-content: center;
         }
-
         .btn {
             padding: 0.8rem 2rem;
             border-radius: 8px;
@@ -145,7 +267,6 @@
             align-items: center;
             gap: 0.5rem;
         }
-
         .btn-gp {
             background: var(--accent-gp);
             color: #0f172a;
@@ -156,13 +277,11 @@
             background: var(--glass-bg);
             color: var(--text-main);
         }
-
         .essays-section {
             max-width: 1200px;
             margin: 0 auto;
             padding: 6rem 2rem;
         }
-
         .section-header {
             margin-bottom: 3.5rem;
         }
@@ -173,13 +292,11 @@
         .section-header p {
             color: var(--text-muted);
         }
-
         .essay-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
             gap: 2rem;
         }
-
         .essay-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -211,7 +328,6 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 30px rgba(0,0,0,0.3);
         }
-
         .card-tag {
             font-size: 0.75rem;
             font-weight: 700;
@@ -221,7 +337,6 @@
         }
         .gp .card-tag { color: var(--accent-gp); }
         .french .card-tag { color: var(--accent-french); }
-
         .essay-card h3 {
             font-size: 1.3rem;
             font-weight: 600;
@@ -263,7 +378,6 @@
         }
         .gp .btn-download { background: var(--accent-gp); }
         .french .btn-download { background: var(--accent-french); }
-
         .modal {
             position: fixed;
             top: 0;
@@ -321,12 +435,6 @@
             padding: 3rem;
             color: var(--text-muted);
         }
-        .auth-message {
-            text-align: center;
-            padding: 4rem;
-            color: var(--text-muted);
-        }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(40px);}
             to { opacity: 1; transform: translateY(0);}
@@ -335,10 +443,9 @@
             from, to { border-color: transparent }
             50% { border-color: var(--accent-gp); }
         }
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 2.5rem; }
-            .cta-buttons { flex-direction: column; }
+        /* prevent body scroll when sidebar open */
+        body.sidebar-open {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -346,6 +453,11 @@
     <header>
         <nav class="nav-container">
             <div class="logo">Laureate<span>Essays.</span></div>
+            <!-- MOBILE HAMBURGER BUTTON -->
+            <div class="menu-toggle" id="mobileMenuToggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </div>
+            <!-- Desktop navigation (unchanged structure) -->
             <ul class="nav-links">
                 <li><a href="#home" class="active">Home</a></li>
                 <li><a href="login.html">Login</a></li>
@@ -355,6 +467,22 @@
             </ul>
         </nav>
     </header>
+
+    <!-- Mobile Left Sidebar + Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-logo">Laureate<span style="color:var(--accent-gp);">Essays</span></span>
+            <button class="close-sidebar" id="closeSidebarBtn">&times;</button>
+        </div>
+        <ul class="mobile-nav-list">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="#english-gp">English GP</a></li>
+            <li><a href="#french-sub">French Sub</a></li>
+            <li><a href="tips.html">Tips</a></li>
+        </ul>
+    </div>
 
     <section class="hero" id="home">
         <div class="hero-content">
@@ -406,7 +534,7 @@
             const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsa3J5a3Bxc2ZldWlkZ3Z3aHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDE5MzcsImV4cCI6MjA5NTk3NzkzN30.-vLZx-PlPFwCuz9ckCQ_0-ObMNRs1Kqk6gM1cnVAZFs";
             const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // --- Helper functions ---
+            // Helper functions
             function escapeHtml(str) {
                 if (!str) return '';
                 return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
@@ -438,7 +566,6 @@
                 `;
             }
 
-            // --- Load essays (only if authenticated) ---
             async function loadAuthenticatedContent() {
                 try {
                     const { data: essays, error } = await supabaseClient
@@ -481,7 +608,7 @@
                 }
             }
 
-            // --- Modal logic ---
+            // Modal logic
             let modal, closeBtn, pdfFrame, modalTitle;
             function attachModalListeners() {
                 modal = document.getElementById('previewModal');
@@ -512,7 +639,7 @@
                 if (e.target === document.getElementById('previewModal')) closeModal();
             });
 
-            // --- Typewriter ---
+            // Typewriter effect
             const words = ["English General Paper.", "French Subsidiary.", "Cambridge Rhetoric.", "Critical Analytical Thinking."];
             let wordIndex = 0, charIndex = 0, isDeleting = false;
             const typeEl = document.getElementById('typewriter');
@@ -541,31 +668,93 @@
             }
             typeWriter();
 
-            // --- Authentication check ---
+            // Auth check
             async function checkAuthAndRender() {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session) {
-                    // Not logged in – redirect to login page
                     window.location.href = 'login.html';
                     return false;
                 }
-                // Logged in – load essays
                 loadAuthenticatedContent();
                 return true;
             }
-
-            // Listen to auth changes (in case of logout while on page)
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_OUT') {
                     window.location.href = 'login.html';
                 } else if (event === 'SIGNED_IN' && session) {
-                    // Already logged in, reload content if needed
                     loadAuthenticatedContent();
                 }
             });
-
-            // Start
             checkAuthAndRender();
+        })();
+    </script>
+
+    <!-- MOBILE SIDEBAR MENU SCRIPT: left drawer + overlay -->
+    <script>
+        (function initMobileSidebar() {
+            // Ensure DOM loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                const hamburger = document.getElementById('mobileMenuToggle');
+                const sidebar = document.getElementById('mobileSidebar');
+                const overlay = document.getElementById('menuOverlay');
+                const closeBtn = document.getElementById('closeSidebarBtn');
+                const body = document.body;
+                const mobileLinks = document.querySelectorAll('.mobile-nav-list a');
+
+                function openSidebar() {
+                    if (!sidebar || !overlay) return;
+                    sidebar.classList.add('open');
+                    overlay.classList.add('active');
+                    body.classList.add('sidebar-open');
+                    // change hamburger icon to times if needed (optional)
+                    const icon = hamburger?.querySelector('i');
+                    if (icon) icon.className = 'fas fa-times';
+                }
+
+                function closeSidebar() {
+                    if (!sidebar || !overlay) return;
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    body.classList.remove('sidebar-open');
+                    const icon = hamburger?.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                }
+
+                if (hamburger) {
+                    hamburger.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (sidebar && sidebar.classList.contains('open')) {
+                            closeSidebar();
+                        } else {
+                            openSidebar();
+                        }
+                    });
+                }
+
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeSidebar);
+                }
+
+                if (overlay) {
+                    overlay.addEventListener('click', closeSidebar);
+                }
+
+                // Close sidebar when a link is clicked (smooth navigation)
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        // if it's an internal anchor (#home, #english-gp) we close sidebar after click
+                        closeSidebar();
+                        // allow default navigation
+                    });
+                });
+
+                // On window resize, if desktop size (>=769px) force close sidebar and reset
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 769) {
+                        closeSidebar();
+                    }
+                });
+            });
         })();
     </script>
 </body>
