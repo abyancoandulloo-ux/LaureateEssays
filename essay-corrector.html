@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Essay Corrector | Laureate Essays</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 30%, #0f172a, #0a0f2a);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px;
+        }
+
+        /* Fixed Navigation Bar */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.2rem;
+            background: linear-gradient(105deg, #818cf8, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Split-Screen Workspace Container */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 2rem auto;
+            flex: 1;
+            padding: 0 2rem;
+        }
+
+        .panel {
+            background: rgba(18, 25, 45, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 160px);
+            min-height: 500px;
+        }
+
+        .panel-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #c7d2fe;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Left Side: Input Elements */
+        textarea {
+            width: 100%;
+            flex: 1;
+            background: #0f172acc;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            color: #f1f5f9;
+            padding: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(95deg, #4f46e5, #6366f1);
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Right Side: Output Elements */
+        .results-view {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding-right: 0.5rem;
+        }
+
+        /* Custom Scrollbar for results */
+        .results-view::-webkit-scrollbar {
+            width: 6px;
+        }
+        .results-view::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        .placeholder-text {
+            color: #64748b;
+            text-align: center;
+            margin: auto;
+            font-style: italic;
+        }
+
+        /* Score Tracker Blocks */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .metric-score {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin-bottom: 0.2rem;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+        }
+
+        /* Recommendation Highlights */
+        .suggestion-box {
+            background: rgba(244, 63, 94, 0.05);
+            border-left: 4px solid #f43f5e;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .suggestion-box.vocabulary {
+            background: rgba(52, 211, 153, 0.05);
+            border-left-color: #34d399;
+        }
+
+        .suggestion-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .suggestion-box.vocabulary .suggestion-title { color: #34d399; }
+        .suggestion-box.grammar .suggestion-title { color: #f43f5e; }
+
+        .suggestion-text {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .suggestion-text code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #fff;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem 0;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: auto;
+        }
+
+        /* Mobile adaptation */
+        @media (max-width: 900px) {
+            body { padding-top: 140px; }
+            .workspace { grid-template-columns: 1fr; }
+            .panel { height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo"><i class="fa-solid fa-graduation-cap"></i> Laureate Essays</a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="tips.html">Tips</a></li>
+            <li><a href="vocab.html">Vocabulary</a></li>
+        </ul>
+    </nav>
+
+    <div class="workspace">
+        
+        <div class="panel">
+            <div class="panel-header"><i class="fa-regular fa-file-lines"></i> Input Essay Draft</div>
+            <textarea id="essayInput" placeholder="Paste your essay here... (Minimum 100 words recommended for comprehensive evaluation)"></textarea>
+            <button class="action-btn" id="analyzeBtn" onclick="runMockAnalysis()"><i class="fa-solid fa-wand-magic-sparkles"></i> Evaluate Essay</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header"><i class="fa-solid fa-chart-simple"></i> AI Feedback Metrics</div>
+            
+            <div class="results-view" id="resultsView">
+                <div class="placeholder-text" id="placeholder">
+                    <i class="fa-solid fa-brain" style="font-size: 2.5rem; color: #334155; margin-bottom: 1rem; display: block;"></i>
+                    Click "Evaluate Essay" to run evaluation matrices across your text.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Laureate Essays Academic Portal. Powered by Secure Edge Frameworks.</p>
+    </footer>
+
+    <script>
+        function runMockAnalysis() {
+            const text = document.getElementById('essayInput').value.trim();
+            const resultsView = document.getElementById('resultsView');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            if (!text) {
+                alert("Please paste an essay draft before evaluating.");
+                return;
+            }
+
+            // UI Loading Animation State
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing Linguistic Matrix...`;
+            resultsView.innerHTML = `
+                <div class="placeholder-text">
+                    <i class="fa-solid fa-satellite-dish fa-spin" style="font-size: 2.5rem; color: #818cf8; margin-bottom: 1rem; display: block;"></i>
+                    Parsing argument coherence and contextual syntax structures...
+                </div>
+            `;
+
+            // Simulate the exact response structure back from an OpenAI / Supabase Edge Function
+            setTimeout(() => {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Evaluate Essay`;
+
+                resultsView.innerHTML = `
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-score">B+</div>
+                            <div class="metric-label">Register Tier</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-score">78%</div>
+                            <div class="metric-label">Linguistic Flow</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-score">High</div>
+                            <div class="metric-label">Syllabus Sync</div>
+                        </div>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08);">
+
+                    <div class="suggestion-box vocabulary">
+                        <div class="suggestion-title"><i class="fa-solid fa-arrow-up-right-dots"></i> Vocabulary Optimization Upgrades</div>
+                        <div class="suggestion-text">
+                            Detected basic structural syntax phrasing. Consider these lexicon substitutions:
+                            <br><br>
+                            • Replace <em>"problems are growing"</em> with <code>"vulnerabilities are proliferating"</code> or <code>"systemic pitfalls are escalating"</code>.
+                            <br><br>
+                            • Replace <em>"bad effects of this change"</em> with <code>"inherent drawbacks of this transition"</code>.
+                        </div>
+                    </div>
+
+                    <div class="suggestion-box grammar">
+                        <div class="suggestion-title"><i class="fa-solid fa-triangle-exclamation"></i> Structural Flow Weakness</div>
+                        <div class="suggestion-text">
+                            Your third paragraph introduces a counter-point abruptly. Smooth out the transition by using a dedicated high-tier concession starter like: <code>"Notwithstanding these economic benefits..."</code> or <code>"Paradoxically, as virtual connectivity scales..."</code>.
+                        </div>
+                    </div>
+                `;
+            }, 1800);
+        }
+    </script>
+</body>
+</html>
