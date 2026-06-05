@@ -9,6 +9,12 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    
+    <script type="module">
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+        window.aiPipeline = pipeline;
+        window.dispatchEvent(new Event('ai-engine-ready'));
+    </script>
 
     <style>
         * {
@@ -27,7 +33,6 @@
             padding-top: 80px;
         }
 
-        /* Fixed Navigation Layout */
         nav {
             position: fixed;
             top: 0;
@@ -69,11 +74,6 @@
             border-radius: 8px;
         }
 
-        .nav-links a:hover {
-            color: #fff;
-            background: rgba(99, 102, 241, 0.1);
-        }
-
         .status-badge {
             font-size: 0.8rem;
             font-weight: 700;
@@ -83,10 +83,9 @@
             align-items: center;
             gap: 0.4rem;
         }
+        .status-loading { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
         .status-online { background: rgba(52, 211, 153, 0.15); color: #34d399; }
-        .status-fallback { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
 
-        /* Workspace Grid Matrix */
         .workspace {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -129,7 +128,6 @@
             color: #94a3b8;
             margin-bottom: 0.4rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .title-input {
@@ -140,10 +138,7 @@
             color: #f1f5f9;
             padding: 0.75rem 1rem;
             font-size: 0.95rem;
-            font-weight: 600;
         }
-
-        .title-input:focus { outline: none; border-color: #818cf8; }
 
         .upload-zone {
             border: 2px dashed rgba(99, 102, 241, 0.4);
@@ -152,20 +147,10 @@
             text-align: center;
             background: rgba(15, 23, 42, 0.4);
             cursor: pointer;
-            transition: all 0.2s;
             margin-bottom: 1rem;
             color: #94a3b8;
             font-size: 0.85rem;
         }
-
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: #818cf8;
-            background: rgba(99, 102, 241, 0.05);
-            color: #fff;
-        }
-
-        .upload-zone i { font-size: 1.4rem; color: #818cf8; margin-bottom: 0.2rem; display: block; }
-        #fileInput { display: none; }
 
         textarea {
             width: 100%;
@@ -180,8 +165,6 @@
             resize: none;
         }
 
-        textarea:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3); }
-
         .action-btn {
             width: 100%;
             padding: 1rem;
@@ -193,12 +176,14 @@
             color: white;
             cursor: pointer;
             margin-top: 1rem;
-            transition: all 0.2s;
         }
 
-        .action-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(79, 70, 229, 0.4); }
+        .action-btn:disabled {
+            background: #1e293b;
+            color: #64748b;
+            cursor: not-allowed;
+        }
 
-        /* Navigation Tab Items */
         .results-tabs {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -207,7 +192,6 @@
             padding: 0.3rem;
             border-radius: 12px;
             margin-bottom: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .tab-btn {
@@ -219,8 +203,6 @@
             font-size: 0.8rem;
             cursor: pointer;
             border-radius: 8px;
-            transition: all 0.2s;
-            text-align: center;
         }
 
         .tab-btn.active { background: #4f46e5; color: white; }
@@ -231,40 +213,31 @@
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
-            padding-right: 0.5rem;
         }
 
-        .results-view::-webkit-scrollbar { width: 6px; }
-        .results-view::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .placeholder-text { color: #64748b; text-align: center; margin: auto; font-style: italic; }
 
-        /* Output View Visual Components */
-        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 0.5rem; }
-        .metric-card { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 1rem; border-radius: 16px; text-align: center; }
-        .metric-score { font-size: 1.8rem; font-weight: 800; color: #38bdf8; }
-        .metric-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; }
-        .report-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; padding: 1.2rem; margin-bottom: 0.2rem; }
-        .report-card h4 { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; color:#fff;}
-        .error-text { color: #f43f5e; text-decoration: line-through; background: rgba(244, 63, 94, 0.15); padding: 0.1rem 0.3rem; border-radius: 4px;}
-        .correct-text { color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600;}
-        .upgrade-badge { background: rgba(56, 189, 248, 0.1); color: #38bdf8; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; display: inline-block; margin-bottom: 5px;}
-        .unexplored-badge { background: rgba(168, 85, 247, 0.15); color: #a855f7; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; display: inline-block; margin-bottom: 5px;}
+        .report-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; padding: 1.2rem; }
+        .report-card h4 { font-size: 0.95rem; margin-bottom: 0.5rem; color:#fff; }
+        .ai-text-block { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; white-space: pre-line; }
+        
+        .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .badge-grammar { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
+        .badge-vocab { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
+        .badge-unexplored { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
 
         #hiddenCanvas { display: none; }
-        footer { border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 1.5rem 0; text-align: center; color: #64748b; font-size: 0.85rem; margin-top: auto; }
-        @media (max-width: 900px) { body { padding-top: 140px; } .workspace { grid-template-columns: 1fr; } .panel { height: auto; } }
+        footer { border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 1.5rem 0; text-align: center; color: #64748b; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
     <nav>
-        <a href="index.html" class="nav-logo"><i class="fa-solid fa-graduation-cap"></i> Laureate Essays</a>
+        <a href="#" class="nav-logo"><i class="fa-solid fa-graduation-cap"></i> Laureate Essays</a>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="vocab.html">Vocabulary</a></li>
             <li>
-                <div class="status-badge status-online" id="networkStatus">
-                    <i class="fa-solid fa-microchip"></i> Local Core Active
+                <div class="status-badge status-loading" id="networkStatus">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Neural Engine...
                 </div>
             </li>
         </ul>
@@ -278,360 +251,160 @@
             
             <div class="input-group">
                 <label for="essayTitle">Essay Question / Topic</label>
-                <input type="text" id="essayTitle" class="title-input" placeholder="e.g., Is globalization expanding prosperity or deepening structural inequality?">
+                <input type="text" id="essayTitle" class="title-input" placeholder="Enter essay topic or prompt context...">
             </div>
 
             <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                 <i class="fa-solid fa-file-invoice"></i>
-                <span id="uploadPrompt">Drop document or click to scan **(Digital PDF, Scanned Image, Handwritten Uploads)**</span>
+                <span id="uploadPrompt">Upload Document or Image Scan</span>
                 <input type="file" id="fileInput" accept=".pdf, image/*">
             </div>
 
-            <textarea id="essayInput" placeholder="Extracted script content will populate here automatically, or begin typing your draft here..."></textarea>
-            <button class="action-btn" id="analyzeBtn" onclick="runLiveAIDiagnostics()"><i class="fa-solid fa-bolt"></i> Compute Evaluation Framework</button>
+            <textarea id="essayInput" placeholder="Paste your essay draft here..."></textarea>
+            <button class="action-btn" id="analyzeBtn" disabled onclick="runLiveAIDiagnostics()">Waiting for AI Weights...</button>
         </div>
 
         <div class="panel">
-            <div class="panel-header"><i class="fa-solid fa-brain"></i> Real-Time Diagnostic Output Matrix</div>
+            <div class="panel-header"><i class="fa-solid fa-brain"></i> Real-Time AI Diagnostic Output Matrix</div>
             
             <div class="results-tabs">
-                <button class="tab-btn active" id="tab-scorecard" onclick="switchReportTab('scorecard')">Scorecard</button>
-                <button class="tab-btn" id="tab-grammar" onclick="switchReportTab('grammar')">Grammar Checks</button>
+                <button class="tab-btn active" id="tab-grammar" onclick="switchReportTab('grammar')">Grammar Checks</button>
                 <button class="tab-btn" id="tab-vocab" onclick="switchReportTab('vocab')">Vocabulary Advice</button>
                 <button class="tab-btn" id="tab-unexplored" onclick="switchReportTab('unexplored')">Unexplored Points</button>
             </div>
 
             <div class="results-view" id="resultsView">
                 <div class="placeholder-text" id="masterPlaceholder">
-                    <i class="fa-solid fa-satellite-dish" style="font-size: 2.5rem; color: #334155; margin-bottom: 1rem; display: block;"></i>
-                    Configure your essay context details and file parameters to initialize system analytics.
+                    The local browser AI core will analyze your writing style as soon as you execute compilation.
                 </div>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2026 Laureate Essays Academic Portal. Secured Local Edge Framework Active.</p>
+        <p>&copy; 2026 Laureate Essays Academic Portal. Secured Local WebGPU Inference Engine.</p>
     </footer>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        const dropzone = document.getElementById('dropzone');
-        const fileInput = document.getElementById('fileInput');
-        const essayInput = document.getElementById('essayInput');
-        const essayTitle = document.getElementById('essayTitle');
-        const uploadPrompt = document.getElementById('uploadPrompt');
+        let generatorInstance = null;
+        const networkStatus = document.getElementById('networkStatus');
         const analyzeBtn = document.getElementById('analyzeBtn');
         const resultsView = document.getElementById('resultsView');
-        const canvas = document.getElementById('hiddenCanvas');
-        const ctx = canvas.getContext('2d');
-        const networkStatus = document.getElementById('networkStatus');
+        const essayInput = document.getElementById('essayInput');
+        const essayTitle = document.getElementById('essayTitle');
 
-        // Drag and drop listeners
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
-        });
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }, false);
-        });
-        dropzone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            if (dt.files.length) handleIncomingFile(dt.files[0]);
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (fileInput.files.length) handleIncomingFile(fileInput.files[0]);
-        });
-
-        function handleIncomingFile(file) {
-            if (file.type === "application/pdf") { parseUniversalPDF(file); } 
-            else if (file.type.startsWith("image/")) { parseLocalImageOCR(file); } 
-            else { alert("Unsupported file format."); }
-        }
-
-        async function parseUniversalPDF(file) {
-            uploadPrompt.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Reading PDF layer data...`;
+        // Listen for WebGPU AI pipeline compilation
+        window.addEventListener('ai-engine-ready', async () => {
             try {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                let textContentCollected = "";
+                networkStatus.innerHTML = `<i class="fa-solid fa-download fa-spin"></i> Loading AI Model into Memory (First load takes a minute)...`;
+                // Loads a lightweight text generation model safely to browse cache
+                generatorInstance = await window.aiPipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat');
+                
+                networkStatus.className = "status-badge status-online";
+                networkStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Local AI Core Ready`;
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerText = "Compute Live AI Evaluation";
+            } catch (err) {
+                networkStatus.className = "status-badge";
+                networkStatus.style.background = "rgba(244,63,94,0.15)";
+                networkStatus.style.color = "#f43f5e";
+                networkStatus.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> WebGPU Not Enabled`;
+                analyzeBtn.innerText = "Local AI Unavailable";
+                console.error(err);
+            }
+        });
 
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const contents = await page.getTextContent();
-                    textContentCollected += contents.items.map(item => item.str).join(" ") + " ";
-                }
+        let aiReportCache = { grammar: "", vocab: "", unexplored: "" };
 
-                if (textContentCollected.trim().length > 30) {
-                    essayInput.value = textContentCollected.trim();
-                    uploadPrompt.innerHTML = `<i class="fa-solid fa-check" style="color:#34d399;"></i> Text Layer Extracted!`;
-                    setTimeout(resetUploadZone, 2000);
-                } else {
-                    uploadPrompt.innerHTML = `<i class="fa-solid fa-eye fa-spin"></i> Raster Layer Detected. Performing OCR Scan...`;
-                    let aggregatedScannedText = "";
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        uploadPrompt.innerHTML = `<i class="fa-solid fa-scanner fa-spin"></i> Reading image canvas page ${i} / ${pdf.numPages}...`;
-                        const page = await pdf.getPage(i);
-                        const viewport = page.getViewport({ scale: 2.0 });
-                        canvas.width = viewport.width; canvas.height = viewport.height;
-                        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                        const pageImgUrl = canvas.toDataURL('image/jpeg', 0.95);
-                        const { data: { text } } = await Tesseract.recognize(pageImgUrl, 'eng');
-                        aggregatedScannedText += text + "\n";
-                    }
-                    essayInput.value = aggregatedScannedText.trim();
-                    uploadPrompt.innerHTML = `<i class="fa-solid fa-check" style="color:#34d399;"></i> Compiled Visual OCR Strings!`;
-                    setTimeout(resetUploadZone, 2000);
-                }
-            } catch (err) { alert("Error pulling documentation structural elements."); resetUploadZone(); }
-        }
-
-        function parseLocalImageOCR(file) {
-            uploadPrompt.innerHTML = `<i class="fa-solid fa-arrows-spin fa-spin"></i> Instantiating Vision Scanner Engine...`;
-            const reader = new FileReader();
-            reader.onload = function() {
-                Tesseract.recognize(reader.result, 'eng')
-                    .then(({ data: { text } }) => {
-                        essayInput.value = text.trim();
-                        uploadPrompt.innerHTML = `<i class="fa-solid fa-check" style="color:#34d399;"></i> Image OCR Concluded`;
-                        setTimeout(resetUploadZone, 2000);
-                    })
-                    .catch(() => { alert("Error mapping document image text layout."); resetUploadZone(); });
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function resetUploadZone() { uploadPrompt.innerHTML = `Drop document or click to scan **(Digital PDF, Scanned Image, Handwritten Uploads)**`; }
-
-        let structuralAnalysisCache = null;
         function switchReportTab(targetTab) {
-            if (!structuralAnalysisCache) return;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${targetTab}`).classList.add('active');
-            resultsView.innerHTML = structuralAnalysisCache[targetTab];
+            resultsView.innerHTML = aiReportCache[targetTab] || `<div class="placeholder-text">No analysis available yet.</div>`;
         }
 
         async function runLiveAIDiagnostics() {
-            const essayText = essayInput.value.trim();
-            const questionText = essayTitle.value.trim() || "General Academic Topic Parameters";
+            const text = essayInput.value.trim();
+            const title = essayTitle.value.trim() || "General Academic Topic";
 
-            if(!essayText) return alert("Please type or upload your essay script into the compiler workspace container first.");
+            if (!text) return alert("Please input text first.");
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Compiling Diagnostics...`;
-            resultsView.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-microchip fa-spin" style="font-size:2.5rem; color:#818cf8; margin-bottom:1rem; display:block;"></i>Isolating GitPages sandboxed variables. Executing fully synchronized token analysis matrix...</div>`;
+            analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> AI Processing locally via WebGPU...`;
+            resultsView.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-microchip fa-spin" style="font-size:2rem; color:#818cf8; display:block; margin-bottom:1rem;"></i>Your local GPU is processing the tokens now. Please wait...</div>`;
 
-            setTimeout(() => {
-                processLocalCalculations(essayText, questionText);
-            }, 1200);
+            try {
+                // Task 1: Grammar Core Processing
+                const promptGrammar = `<|im_start|>system\nYou are an English writing evaluator. Find and list all spelling, typo, and grammar mistakes found in the user text, and show how to fix them.<|im_end|>\n<|im_start|>user\nText:\n"${text}"<|im_end|>\n<|im_start|>assistant\n`;
+                const outGrammar = await generatorInstance(promptGrammar, { max_new_tokens: 150, stop: ["<|im_end|>"] });
+                aiReportCache.grammar = `<div class="report-card"><span class="badge badge-grammar">Live Grammar Scan</span><div class="ai-text-block">${cleanAIOutput(outGrammar[0].generated_text, promptGrammar)}</div></div>`;
+
+                // Task 2: Vocabulary Core Processing
+                const promptVocab = `<|im_start|>system\nYou are an academic essay tutor. List 3 to 4 complex, higher-tier vocabulary word replacements for the basic words found in the text.<|im_end|>\n<|im_start|>user\nText:\n"${text}"<|im_end|>\n<|im_start|>assistant\n`;
+                const outVocab = await generatorInstance(promptVocab, { max_new_tokens: 150, stop: ["<|im_end|>"] });
+                aiReportCache.vocab = `<div class="report-card"><span class="badge badge-vocab">Academic Vocabulary Upgrades</span><div class="ai-text-block">${cleanAIOutput(outVocab[0].generated_text, promptVocab)}</div></div>`;
+
+                // Task 3: Unexplored Themes Processing
+                const promptUnexplored = `<|im_start|>system\nYou are an essay logic analyzer. Review the essay text against the topic title: "${title}". Suggest 2 or 3 missing viewpoints, arguments, or critical ideas that the writer should add to make it complete.<|im_end|>\n<|im_start|>user\nText:\n"${text}"<|im_end|>\n<|im_start|>assistant\n`;
+                const outUnexplored = await generatorInstance(promptUnexplored, { max_new_tokens: 150, stop: ["<|im_end|>"] });
+                aiReportCache.unexplored = `<div class="report-card"><span class="badge badge-unexplored">Unexplored Context Points</span><div class="ai-text-block">${cleanAIOutput(outUnexplored[0].generated_text, promptUnexplored)}</div></div>`;
+
+                // Render view
+                switchReportTab('grammar');
+
+            } catch(e) {
+                console.error(e);
+                resultsView.innerHTML = `<div class="placeholder-text" style="color:#f43f5e;">Local execution error during inference sequence computation.</div>`;
+            }
+
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Compute Live AI Evaluation`;
         }
 
-        // 🧠 LOCAL OFF-LINE COMPUTATION GRID CORE
-        function processLocalCalculations(text, title) {
-            networkStatus.className = "status-badge status-fallback";
-            networkStatus.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Sandboxed Edge Active`;
+        function cleanAIOutput(rawResult, promptTemplate) {
+            return rawResult.replace(promptTemplate, "").replace("<|im_end|>", "").trim();
+        }
 
-            const lowerText = text.toLowerCase();
-            
-            // ==========================================
-            // 1. ACTIVE GRAMMAR & SPELLING DETECTION ENGINE
-            // ==========================================
-            let grammarHtmlCards = "";
-            let grammarIssuesTracked = 0;
+        // File Uploader Event Management (PDF and Image Canvas Extraction)
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const canvas = document.getElementById('hiddenCanvas');
+        const ctx = canvas.getContext('2d');
 
-            const commonErrors = [
-                { regex: /\btecknology\b/gi, error: "Tecknology", fix: "Technology", type: "Spelling Mismatch" },
-                { regex: /\bchallanges\b/gi, error: "challanges", fix: "challenges", type: "Spelling Mismatch" },
-                { regex: /\bartifical\b/gi, error: "artifical", fix: "artificial", type: "Spelling Mismatch" },
-                { regex: /\bis'nt\b/gi, error: "is'nt", fix: "isn't", type: "Punctuation Mismatch" },
-                { regex: /\ballthough\b/gi, error: "Allthough", fix: "Although", type: "Spelling Mismatch" },
-                { regex: /\blimitacions\b/gi, error: "limitacions", fix: "limitations", type: "Spelling Mismatch" },
-                { regex: /\bwith\s+out\b/gi, error: "With out", fix: "Without", type: "Compound Word Split" },
-                { regex: /\bto\s+much\b/gi, error: "to much", fix: "too much", type: "Homophone Confusion" },
-                { regex: /\bits\s+important\b/gi, error: "Its important", fix: "It's important", type: "Possessive vs Contraction" },
-                { regex: /\bresponsability\b/gi, error: "responsability", fix: "responsibility", type: "Spelling Mismatch" },
-                { regex: /\balso\s+bring\b/gi, error: "also bring", fix: "also brings", type: "Subject-Verb Agreement" }
-            ];
+        ['dragenter', 'dragover'].forEach(name => dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.style.borderColor = "#818cf8"; }));
+        ['dragleave', 'drop'].forEach(name => dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.style.borderColor = "rgba(99, 102, 241, 0.4)"; }));
+        dropzone.addEventListener('drop', (e) => { if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', () => { if (fileInput.files.length) processFile(fileInput.files[0]); });
 
-            commonErrors.forEach(item => {
-                if (item.regex.test(text)) {
-                    grammarIssuesTracked++;
-                    grammarHtmlCards += `
-                        <div class="report-card">
-                            <span class="error-badge" style="background:rgba(244,63,94,0.15); color:#f43f5e; padding:0.2rem 0.5rem; border-radius:6px; font-size:0.75rem; font-weight:700;">${item.type}</span>
-                            <h4 style="margin-top:0.5rem;">Syntactical Alignment Flag</h4>
-                            <p>Found expression string: "<span class="error-text">${item.error}</span>" <br>➔ Replace with: "<span class="correct-text">${item.fix}</span>"</p>
-                        </div>`;
-                }
-            });
-
-            // Passive Voice structural check rule
-            const passiveVoiceRegex = /\b(was|were|is|are|been|being)\b\s+\w+ed\b/gi;
-            if (passiveVoiceRegex.test(text)) {
-                grammarIssuesTracked++;
-                grammarHtmlCards += `
-                    <div class="report-card">
-                        <span class="error-badge" style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:0.2rem 0.5rem; border-radius:6px; font-size:0.75rem; font-weight:700;">Voice Optimization</span>
-                        <h4 style="margin-top:0.5rem;">Passive Voice Configuration Alert</h4>
-                        <p>The layout trends toward passive configurations. Consider rearranging sentence blocks into clear <strong>Active Voice profiles</strong> to drive stronger validation values.</p>
-                    </div>`;
+        function processFile(file) {
+            if (file.type === "application/pdf") {
+                uploadPrompt.innerText = "Extracting text layers from PDF...";
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(this.result) }).promise;
+                    let text = "";
+                    for(let i=1; i<=pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(item => item.str).join(" ") + "\n";
+                    }
+                    essayInput.value = text;
+                    uploadPrompt.innerText = "PDF Imported Successfully!";
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.type.startsWith("image/")) {
+                uploadPrompt.innerText = "Running Image OCR text scanning...";
+                const reader = new FileReader();
+                reader.onload = function() {
+                    Tesseract.recognize(reader.result, 'eng').then(({ data: { text } }) => {
+                        essayInput.value = text;
+                        uploadPrompt.innerText = "Image Imported Successfully!";
+                    });
+                };
+                reader.readAsDataURL(file);
             }
-
-            if (grammarIssuesTracked === 0) {
-                grammarHtmlCards = `
-                    <div class="report-card">
-                        <h4><i class="fa-solid fa-circle-check" style="color:#34d399;"></i> Syntax Layout Clean</h4>
-                        <p>No critical layout flaws, punctuation misalignments, or structural spelling fragments were found in this composition frame.</p>
-                    </div>`;
-            }
-
-            // ==========================================
-            // 2. DICTIONARY VOCABULARY UPGRADE MATRIX
-            // ==========================================
-            let vocabHtmlCards = "";
-            let checkedVocabItems = 0;
-
-            const advancedDictionary = [
-                { match: "change", upgrade: "Catalyze structural transformation", category: "Structural Modification", description: "Elevates baseline functional shifts into architectural system actions." },
-                { match: "increase", upgrade: "Proliferate / Escalating expansion", category: "Velocity Metric", description: "Indicates rapid, compounding growth parameters instead of simple numeric gains." },
-                { match: "worse", upgrade: "Exacerbate existing system drawbacks", category: "Negative Escalation", description: "Accentuates the systematic compounding of pre-existing negative variables." },
-                { match: "decrease", upgrade: "Precipitate a structural decline", category: "Velocity Shifts", description: "Captures a sharp downward trends inside volatile environment metrics." },
-                { match: "cause", upgrade: "Instigate architectural alignment", category: "Causality Element", description: "Replaces weak active verbs with robust academic vectors." },
-                { match: "show", upgrade: "Manifest undeniable empirical evidence", category: "Demonstrative Register", description: "Displays critical diagnostic factors cleanly to validate an evaluation." },
-                { match: "problem", upgrade: "Systemic complication / Vulnerability", category: "Analytical Stature", description: "Refines subjective complaints into measurable, targetable vulnerabilities." }
-            ];
-
-            advancedDictionary.forEach(item => {
-                if (lowerText.includes(item.match)) {
-                    checkedVocabItems++;
-                    vocabHtmlCards += `
-                        <div class="report-card">
-                            <span class="upgrade-badge">${item.category} Match</span>
-                            <h4>Alternative Register Use-Case for "${item.match}"</h4>
-                            <p>Instead of baseline tracking expression: <em>"${item.match}"</em> <br>➔ Upgrade option: <code>"${item.upgrade}"</code></p>
-                            <p style="font-size:0.8rem; color:#94a3b8; margin-top:0.4rem; font-style:italic;">${item.description}</p>
-                        </div>`;
-                }
-            });
-
-            if(checkedVocabItems === 0) {
-                vocabHtmlCards = `
-                    <div class="report-card">
-                        <span class="upgrade-badge">Lexicon Structural Advice</span>
-                        <h4>General Lexicon Register Optimization</h4>
-                        <p>No entry matches found. To scale up your tier ranking scores, systematically swap out basic auxiliary descriptors for technical, thesis-grade verb alignments.</p>
-                    </div>`;
-            }
-
-            // ==========================================
-            // 3. DYNAMIC UNEXPLORED POINTS MATRIX GENERATOR
-            // ==========================================
-            let unexploredHtmlCards = `
-                <div class="report-card" style="border-color: rgba(168, 85, 2 purple47, 0.3); background: rgba(168, 85, 247, 0.02);">
-                    <h3 style="font-size:0.95rem; color:#a855f7; margin-bottom:0.4rem;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Context Anchor Frame
-                    </h3>
-                    <p style="font-size:0.85rem; color:#cbd5e1; font-style:italic;">"${title}"</p>
-                </div>`;
-
-            // Dynamic logic to branch analysis nodes based on your current input keywords!
-            if (lowerText.includes("intelligence") || lowerText.includes("ai") || title.toLowerCase().includes("ai") || title.toLowerCase().includes("technology")) {
-                unexploredHtmlCards += `
-                    <div class="report-card">
-                        <span class="unexplored-badge">Missing Analytical Perspective 1</span>
-                        <h4>Algorithmic Opacity & The "Black Box" Dilemma</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
-                            Your essay outlines data training limitations, but adding an evaluation of the <strong>lack of systemic transparency</strong> inside deep neural layers would strengthen your argument. Discuss how hidden biases prevent human supervisors from reviewing how an automation system derived an output.
-                        </p>
-                    </div>
-                    <div class="report-card">
-                        <span class="unexplored-badge">Missing Analytical Perspective 2</span>
-                        <h4>Moral Agent Shift & Structural Accountability</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
-                            Address the legal and ethical voids regarding accountability tracking lines. When an autonomous network initiates a catastrophic decision, who bears the liability? The developers, the data miners, or the end-point human operators?
-                        </p>
-                    </div>
-                    <div class="report-card">
-                        <span class="unexplored-badge">Missing Analytical Perspective 3</span>
-                        <h4>Cognitive Atrophy & Deskilling of Workforce Matrices</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
-                            Consider evaluating the long-term cognitive impact of over-reliance. Trusting machine models blindly could lead to a decline in manual diagnostic and problem-solving skills among professional decision-makers.
-                        </p>
-                    </div>`;
-            } else {
-                // Universal fallback prompt logic if a general academic title was provided
-                unexploredHtmlCards += `
-                    <div class="report-card">
-                        <span class="unexplored-badge">Missing Thesis Perspective 1</span>
-                        <h4>Macroeconomic Structural Dependencies</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
-                            The argument would benefit from evaluating how resource distribution changes and global framework loops affect lower economic strata. Balance your micro-level arguments against macro structural systems.
-                        </p>
-                    </div>
-                    <div class="report-card">
-                        <span class="unexplored-badge">Missing Thesis Perspective 2</span>
-                        <h4>Counter-Argument Matrix Refinement</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
-                            Incorporate a section addressing opposing views. Directly challenging counterarguments (using markers like <em>"Naysayers propound that..."</em>) helps validate your main thesis statements.
-                        </p>
-                    </div>`;
-            }
-
-            // ==========================================
-            // 4. SCORECARD METRIC WEIGHTING CALCULATION
-            // ==========================================
-            let trackingSignpostsCount = 0;
-            const analyticalSignposts = [
-                "case in point", "epitomized by", "as evidenced by", "encapsulate this trend", 
-                "exemplified", "illustrated", "typified", "conversely", "paradoxically", 
-                "proponents argue", "naysayers propound", "flip side of the coin"
-            ];
-            analyticalSignposts.forEach(signpost => {
-                if (lowerText.includes(signpost)) trackingSignpostsCount++;
-            });
-
-            // Math score formulation matrix calculations
-            let totalGrammarClarityValue = Math.max(15, 100 - (grammarIssuesTracked * 9));
-            let calculatedCompositeScore = Math.min(95, 60 + (trackingSignpostsCount * 4) + (checkedVocabItems * 2) - (grammarIssuesTracked * 3));
-            
-            let targetGradeBand = "B-";
-            if (calculatedCompositeScore >= 88) targetGradeBand = "A+";
-            else if (calculatedCompositeScore >= 80) targetGradeBand = "A-";
-            else if (calculatedCompositeScore >= 72) targetGradeBand = "B+";
-            else if (calculatedCompositeScore >= 64) targetGradeBand = "B";
-
-            // Save elements directly inside local storage runtime variables
-            structuralAnalysisCache = {
-                scorecard: `
-                    <div class="metrics-grid">
-                        <div class="metric-card"><div class="metric-score">${targetGradeBand}</div><div class="metric-label">Target Band</div></div>
-                        <div class="metric-card"><div class="metric-score">${totalGrammarClarityValue}%</div><div class="metric-label">Grammar Clarity</div></div>
-                        <div class="metric-card"><div class="metric-score">${trackingSignpostsCount > 2 ? 'Tier 1' : 'Tier 2'}</div><div class="metric-label">Signpost Register</div></div>
-                    </div>
-                    <div class="report-card">
-                        <h4>Executive Summary (GitPages Local Edge Engine)</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.6; margin-top:0.4rem;">
-                            Your essay composition content was processed locally to avoid hosting origin restrictions. The engine isolated <strong>${grammarIssuesTracked} grammar/spelling flags</strong>, identified <strong>${checkedVocabItems} vocabulary upgrade nodes</strong>, and uncovered hidden themes specific to your topic title.
-                        </p>
-                    </div>
-                `,
-                grammar: grammarHtmlCards,
-                vocab: vocabHtmlCards,
-                unexplored: unexploredHtmlCards
-            };
-
-            // Paint primary screen layout components instantly
-            resultsView.innerHTML = structuralAnalysisCache.scorecard;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-scorecard').classList.add('active');
-            
-            analyzeBtn.disabled = false;
-            analyzeBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Compute Evaluation Framework`;
-            
-            setTimeout(() => {
-                networkStatus.className = "status-badge status-online";
-                networkStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Edge Evaluation Synchronized`;
-            }, 800);
         }
     </script>
 </body>
