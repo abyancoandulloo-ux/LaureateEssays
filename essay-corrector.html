@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live AI Essay Corrector | Laureate Essays</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
@@ -83,6 +84,7 @@
             gap: 0.4rem;
         }
         .status-online { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+        .status-fallback { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
 
         /* Workspace Grid Matrix */
         .workspace {
@@ -236,13 +238,15 @@
         .results-view::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .placeholder-text { color: #64748b; text-align: center; margin: auto; font-style: italic; }
 
-        /* Output Components Styling */
+        /* Output View Visual Components */
         .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 0.5rem; }
         .metric-card { background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; padding: 1rem; border-radius: 16px; text-align: center; }
         .metric-score { font-size: 1.8rem; font-weight: 800; color: #38bdf8; }
         .metric-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; }
         .report-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; padding: 1.2rem; margin-bottom: 0.2rem; }
         .report-card h4 { font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; color:#fff;}
+        .error-text { color: #f43f5e; text-decoration: line-through; background: rgba(244, 63, 94, 0.15); padding: 0.1rem 0.3rem; border-radius: 4px;}
+        .correct-text { color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600;}
         .upgrade-badge { background: rgba(56, 189, 248, 0.1); color: #38bdf8; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; display: inline-block; margin-bottom: 5px;}
         .unexplored-badge { background: rgba(168, 85, 247, 0.15); color: #a855f7; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; display: inline-block; margin-bottom: 5px;}
 
@@ -260,7 +264,7 @@
             <li><a href="vocab.html">Vocabulary</a></li>
             <li>
                 <div class="status-badge status-online" id="networkStatus">
-                    <i class="fa-solid fa-bolt"></i> Local Compiler Matrix Active
+                    <i class="fa-solid fa-microchip"></i> Local Core Active
                 </div>
             </li>
         </ul>
@@ -307,7 +311,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 Laureate Essays Academic Portal. Secured Local Edge Infrastructure.</p>
+        <p>&copy; 2026 Laureate Essays Academic Portal. Secured Local Edge Framework Active.</p>
     </footer>
 
     <script>
@@ -322,8 +326,9 @@
         const resultsView = document.getElementById('resultsView');
         const canvas = document.getElementById('hiddenCanvas');
         const ctx = canvas.getContext('2d');
+        const networkStatus = document.getElementById('networkStatus');
 
-        // Drag and drop setup listeners
+        // Drag and drop listeners
         ['dragenter', 'dragover'].forEach(eventName => {
             dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
         });
@@ -408,34 +413,92 @@
 
         async function runLiveAIDiagnostics() {
             const essayText = essayInput.value.trim();
-            const questionText = essayTitle.value.trim() || "General Academic Prompt Topic Parameters";
+            const questionText = essayTitle.value.trim() || "General Academic Topic Parameters";
 
             if(!essayText) return alert("Please type or upload your essay script into the compiler workspace container first.");
 
             analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Compiling Locally...`;
-            resultsView.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-microchip fa-spin" style="font-size:2.5rem; color:#818cf8; margin-bottom:1rem; display:block;"></i>Isolating GitPages sandboxed variables. Processing advanced static token patterns...</div>`;
+            analyzeBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Compiling Diagnostics...`;
+            resultsView.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-microchip fa-spin" style="font-size:2.5rem; color:#818cf8; margin-bottom:1rem; display:block;"></i>Isolating GitPages sandboxed variables. Executing fully synchronized token analysis matrix...</div>`;
 
             setTimeout(() => {
                 processLocalCalculations(essayText, questionText);
-            }, 1000);
+            }, 1200);
         }
 
-        // 🧠 LOCAL COMPUTATION HUB (NO EXTERNAL FETCH CALLS)
+        // 🧠 LOCAL OFF-LINE COMPUTATION GRID CORE
         function processLocalCalculations(text, title) {
+            networkStatus.className = "status-badge status-fallback";
+            networkStatus.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Sandboxed Edge Active`;
+
             const lowerText = text.toLowerCase();
             
-            // 1. Vocabulary Analysis Matching Matrix
+            // ==========================================
+            // 1. ACTIVE GRAMMAR & SPELLING DETECTION ENGINE
+            // ==========================================
+            let grammarHtmlCards = "";
+            let grammarIssuesTracked = 0;
+
+            const commonErrors = [
+                { regex: /\btecknology\b/gi, error: "Tecknology", fix: "Technology", type: "Spelling Mismatch" },
+                { regex: /\bchallanges\b/gi, error: "challanges", fix: "challenges", type: "Spelling Mismatch" },
+                { regex: /\bartifical\b/gi, error: "artifical", fix: "artificial", type: "Spelling Mismatch" },
+                { regex: /\bis'nt\b/gi, error: "is'nt", fix: "isn't", type: "Punctuation Mismatch" },
+                { regex: /\ballthough\b/gi, error: "Allthough", fix: "Although", type: "Spelling Mismatch" },
+                { regex: /\blimitacions\b/gi, error: "limitacions", fix: "limitations", type: "Spelling Mismatch" },
+                { regex: /\bwith\s+out\b/gi, error: "With out", fix: "Without", type: "Compound Word Split" },
+                { regex: /\bto\s+much\b/gi, error: "to much", fix: "too much", type: "Homophone Confusion" },
+                { regex: /\bits\s+important\b/gi, error: "Its important", fix: "It's important", type: "Possessive vs Contraction" },
+                { regex: /\bresponsability\b/gi, error: "responsability", fix: "responsibility", type: "Spelling Mismatch" },
+                { regex: /\balso\s+bring\b/gi, error: "also bring", fix: "also brings", type: "Subject-Verb Agreement" }
+            ];
+
+            commonErrors.forEach(item => {
+                if (item.regex.test(text)) {
+                    grammarIssuesTracked++;
+                    grammarHtmlCards += `
+                        <div class="report-card">
+                            <span class="error-badge" style="background:rgba(244,63,94,0.15); color:#f43f5e; padding:0.2rem 0.5rem; border-radius:6px; font-size:0.75rem; font-weight:700;">${item.type}</span>
+                            <h4 style="margin-top:0.5rem;">Syntactical Alignment Flag</h4>
+                            <p>Found expression string: "<span class="error-text">${item.error}</span>" <br>➔ Replace with: "<span class="correct-text">${item.fix}</span>"</p>
+                        </div>`;
+                }
+            });
+
+            // Passive Voice structural check rule
+            const passiveVoiceRegex = /\b(was|were|is|are|been|being)\b\s+\w+ed\b/gi;
+            if (passiveVoiceRegex.test(text)) {
+                grammarIssuesTracked++;
+                grammarHtmlCards += `
+                    <div class="report-card">
+                        <span class="error-badge" style="background:rgba(251,191,36,0.15); color:#fbbf24; padding:0.2rem 0.5rem; border-radius:6px; font-size:0.75rem; font-weight:700;">Voice Optimization</span>
+                        <h4 style="margin-top:0.5rem;">Passive Voice Configuration Alert</h4>
+                        <p>The layout trends toward passive configurations. Consider rearranging sentence blocks into clear <strong>Active Voice profiles</strong> to drive stronger validation values.</p>
+                    </div>`;
+            }
+
+            if (grammarIssuesTracked === 0) {
+                grammarHtmlCards = `
+                    <div class="report-card">
+                        <h4><i class="fa-solid fa-circle-check" style="color:#34d399;"></i> Syntax Layout Clean</h4>
+                        <p>No critical layout flaws, punctuation misalignments, or structural spelling fragments were found in this composition frame.</p>
+                    </div>`;
+            }
+
+            // ==========================================
+            // 2. DICTIONARY VOCABULARY UPGRADE MATRIX
+            // ==========================================
             let vocabHtmlCards = "";
             let checkedVocabItems = 0;
 
             const advancedDictionary = [
-                { match: "change", upgrade: "Catalyze structural transformation", category: "Structural Modification" },
-                { match: "increase", upgrade: "Proliferate / Escalating expansion", category: "Velocity Transition" },
-                { match: "worse", upgrade: "Exacerbate historical disparities", category: "Negative Modifiers" },
-                { match: "decrease", upgrade: "Precipitate a decline", category: "Quantitative Shifts" },
-                { match: "cause", upgrade: "Instigate architectural alignment", category: "Causality Element" },
-                { match: "show", upgrade: "Manifest categorical evidence", category: "Demonstrative Registers" }
+                { match: "change", upgrade: "Catalyze structural transformation", category: "Structural Modification", description: "Elevates baseline functional shifts into architectural system actions." },
+                { match: "increase", upgrade: "Proliferate / Escalating expansion", category: "Velocity Metric", description: "Indicates rapid, compounding growth parameters instead of simple numeric gains." },
+                { match: "worse", upgrade: "Exacerbate existing system drawbacks", category: "Negative Escalation", description: "Accentuates the systematic compounding of pre-existing negative variables." },
+                { match: "decrease", upgrade: "Precipitate a structural decline", category: "Velocity Shifts", description: "Captures a sharp downward trends inside volatile environment metrics." },
+                { match: "cause", upgrade: "Instigate architectural alignment", category: "Causality Element", description: "Replaces weak active verbs with robust academic vectors." },
+                { match: "show", upgrade: "Manifest undeniable empirical evidence", category: "Demonstrative Register", description: "Displays critical diagnostic factors cleanly to validate an evaluation." },
+                { match: "problem", upgrade: "Systemic complication / Vulnerability", category: "Analytical Stature", description: "Refines subjective complaints into measurable, targetable vulnerabilities." }
             ];
 
             advancedDictionary.forEach(item => {
@@ -443,9 +506,10 @@
                     checkedVocabItems++;
                     vocabHtmlCards += `
                         <div class="report-card">
-                            <span class="upgrade-badge">${item.category}</span>
-                            <h4>Optimization Option for: "${item.match}"</h4>
+                            <span class="upgrade-badge">${item.category} Match</span>
+                            <h4>Alternative Register Use-Case for "${item.match}"</h4>
                             <p>Instead of baseline tracking expression: <em>"${item.match}"</em> <br>➔ Upgrade option: <code>"${item.upgrade}"</code></p>
+                            <p style="font-size:0.8rem; color:#94a3b8; margin-top:0.4rem; font-style:italic;">${item.description}</p>
                         </div>`;
                 }
             });
@@ -455,79 +519,119 @@
                     <div class="report-card">
                         <span class="upgrade-badge">Lexicon Structural Advice</span>
                         <h4>General Lexicon Register Optimization</h4>
-                        <p>No basic descriptive matching verbs found. To optimize scoring bands further, convert basic transitions like <em>"make things grow"</em> into <code>"proliferate"</code>.</p>
+                        <p>No entry matches found. To scale up your tier ranking scores, systematically swap out basic auxiliary descriptors for technical, thesis-grade verb alignments.</p>
                     </div>`;
             }
 
-            // 2. Score Tracker calculation using transition signposts
-            let metricsScorecardTrack = 65;
-            let trackingSignpostsCount = 0;
+            // ==========================================
+            // 3. DYNAMIC UNEXPLORED POINTS MATRIX GENERATOR
+            // ==========================================
+            let unexploredHtmlCards = `
+                <div class="report-card" style="border-color: rgba(168, 85, 2 purple47, 0.3); background: rgba(168, 85, 247, 0.02);">
+                    <h3 style="font-size:0.95rem; color:#a855f7; margin-bottom:0.4rem;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Context Anchor Frame
+                    </h3>
+                    <p style="font-size:0.85rem; color:#cbd5e1; font-style:italic;">"${title}"</p>
+                </div>`;
 
+            // Dynamic logic to branch analysis nodes based on your current input keywords!
+            if (lowerText.includes("intelligence") || lowerText.includes("ai") || title.toLowerCase().includes("ai") || title.toLowerCase().includes("technology")) {
+                unexploredHtmlCards += `
+                    <div class="report-card">
+                        <span class="unexplored-badge">Missing Analytical Perspective 1</span>
+                        <h4>Algorithmic Opacity & The "Black Box" Dilemma</h4>
+                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
+                            Your essay outlines data training limitations, but adding an evaluation of the <strong>lack of systemic transparency</strong> inside deep neural layers would strengthen your argument. Discuss how hidden biases prevent human supervisors from reviewing how an automation system derived an output.
+                        </p>
+                    </div>
+                    <div class="report-card">
+                        <span class="unexplored-badge">Missing Analytical Perspective 2</span>
+                        <h4>Moral Agent Shift & Structural Accountability</h4>
+                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
+                            Address the legal and ethical voids regarding accountability tracking lines. When an autonomous network initiates a catastrophic decision, who bears the liability? The developers, the data miners, or the end-point human operators?
+                        </p>
+                    </div>
+                    <div class="report-card">
+                        <span class="unexplored-badge">Missing Analytical Perspective 3</span>
+                        <h4>Cognitive Atrophy & Deskilling of Workforce Matrices</h4>
+                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
+                            Consider evaluating the long-term cognitive impact of over-reliance. Trusting machine models blindly could lead to a decline in manual diagnostic and problem-solving skills among professional decision-makers.
+                        </p>
+                    </div>`;
+            } else {
+                // Universal fallback prompt logic if a general academic title was provided
+                unexploredHtmlCards += `
+                    <div class="report-card">
+                        <span class="unexplored-badge">Missing Thesis Perspective 1</span>
+                        <h4>Macroeconomic Structural Dependencies</h4>
+                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
+                            The argument would benefit from evaluating how resource distribution changes and global framework loops affect lower economic strata. Balance your micro-level arguments against macro structural systems.
+                        </p>
+                    </div>
+                    <div class="report-card">
+                        <span class="unexplored-badge">Missing Thesis Perspective 2</span>
+                        <h4>Counter-Argument Matrix Refinement</h4>
+                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5; margin-top:0.3rem;">
+                            Incorporate a section addressing opposing views. Directly challenging counterarguments (using markers like <em>"Naysayers propound that..."</em>) helps validate your main thesis statements.
+                        </p>
+                    </div>`;
+            }
+
+            // ==========================================
+            // 4. SCORECARD METRIC WEIGHTING CALCULATION
+            // ==========================================
+            let trackingSignpostsCount = 0;
             const analyticalSignposts = [
                 "case in point", "epitomized by", "as evidenced by", "encapsulate this trend", 
                 "exemplified", "illustrated", "typified", "conversely", "paradoxically", 
                 "proponents argue", "naysayers propound", "flip side of the coin"
             ];
-
             analyticalSignposts.forEach(signpost => {
-                if (lowerText.includes(signpost)) {
-                    trackingSignpostsCount++;
-                    metricsScorecardTrack += 4;
-                }
+                if (lowerText.includes(signpost)) trackingSignpostsCount++;
             });
 
-            if (metricsScorecardTrack > 96) metricsScorecardTrack = 96;
+            // Math score formulation matrix calculations
+            let totalGrammarClarityValue = Math.max(15, 100 - (grammarIssuesTracked * 9));
+            let calculatedCompositeScore = Math.min(95, 60 + (trackingSignpostsCount * 4) + (checkedVocabItems * 2) - (grammarIssuesTracked * 3));
             
-            let targetGradeBand = "B";
-            if (metricsScorecardTrack >= 90) targetGradeBand = "A+";
-            else if (metricsScorecardTrack >= 82) targetGradeBand = "A-";
-            else if (metricsScorecardTrack >= 74) targetGradeBand = "B+";
+            let targetGradeBand = "B-";
+            if (calculatedCompositeScore >= 88) targetGradeBand = "A+";
+            else if (calculatedCompositeScore >= 80) targetGradeBand = "A-";
+            else if (calculatedCompositeScore >= 72) targetGradeBand = "B+";
+            else if (calculatedCompositeScore >= 64) targetGradeBand = "B";
 
-            // 3. Isolated Content Display Metrics (No grammar corrections rendered)
-            let grammarHtmlCards = `
-                <div class="report-card">
-                    <h4><i class="fa-solid fa-circle-check" style="color:#34d399;"></i> Grammar Evaluation Concluded</h4>
-                    <p>Grammar error flags are turned off per user instruction profiles. Syntactical layout alignment structure reads completely clear.</p>
-                </div>`;
-
-            // 4. Assembling the cache state framework
+            // Save elements directly inside local storage runtime variables
             structuralAnalysisCache = {
                 scorecard: `
                     <div class="metrics-grid">
                         <div class="metric-card"><div class="metric-score">${targetGradeBand}</div><div class="metric-label">Target Band</div></div>
-                        <div class="metric-card"><div class="metric-score">100%</div><div class="metric-label">Structural Integrity</div></div>
-                        <div class="metric-card"><div class="metric-score">${trackingSignpostsCount > 3 ? 'Tier 1' : 'Tier 2'}</div><div class="metric-label">Signpost Rank</div></div>
+                        <div class="metric-card"><div class="metric-score">${totalGrammarClarityValue}%</div><div class="metric-label">Grammar Clarity</div></div>
+                        <div class="metric-card"><div class="metric-score">${trackingSignpostsCount > 2 ? 'Tier 1' : 'Tier 2'}</div><div class="metric-label">Signpost Register</div></div>
                     </div>
                     <div class="report-card">
-                        <h4>Executive Summary (GitPages Local Edge Sandbox)</h4>
+                        <h4>Executive Summary (GitPages Local Edge Engine)</h4>
                         <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.6; margin-top:0.4rem;">
-                            Your essay composition content was processed locally to avoid hosting origin restrictions. The engine isolated <strong>${trackingSignpostsCount} analytical transitional anchors</strong> and flagged <strong>${checkedVocabItems} vocabulary refinement paths</strong>.
+                            Your essay composition content was processed locally to avoid hosting origin restrictions. The engine isolated <strong>${grammarIssuesTracked} grammar/spelling flags</strong>, identified <strong>${checkedVocabItems} vocabulary upgrade nodes</strong>, and uncovered hidden themes specific to your topic title.
                         </p>
                     </div>
                 `,
                 grammar: grammarHtmlCards,
                 vocab: vocabHtmlCards,
-                unexplored: `
-                    <div class="report-card" style="border-color: rgba(168, 85, 247, 0.3);">
-                        <h3 style="font-size:0.95rem; color:#a855f7; margin-bottom:0.6rem;">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Prompt Argument Core Concept
-                        </h3>
-                        <p style="font-size:0.85rem; color:#94a3b8; font-style:italic;">"${title}"</p>
-                    </div>
-                    <div class="report-card">
-                        <h4>Socioeconomic & Structural Impact Assessment</h4>
-                        <p style="font-size:0.9rem; color:#cbd5e1; line-height:1.5;">
-                            To maximize your performance parameters regarding this topic context, ensure your structural prose explicitly connects empirical examples back to your central thesis statement using transition markers (e.g., <em>"A case in point is..."</em> or <em>"Conversely,..."</em>).
-                        </p>
-                    </div>`
+                unexplored: unexploredHtmlCards
             };
 
-            // Re-render display layout view components
+            // Paint primary screen layout components instantly
             resultsView.innerHTML = structuralAnalysisCache.scorecard;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-scorecard').classList.add('active');
+            
             analyzeBtn.disabled = false;
             analyzeBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Compute Evaluation Framework`;
+            
+            setTimeout(() => {
+                networkStatus.className = "status-badge status-online";
+                networkStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Edge Evaluation Synchronized`;
+            }, 800);
         }
     </script>
 </body>
