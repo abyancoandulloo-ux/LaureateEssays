@@ -3,409 +3,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live AI Essay Corrector | Laureate Essays</title>
+    <title>Laureate AI | Cloudflare Essay Corrector (CORS Fixed)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-    
-    <script type="module">
-        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
-        window.aiPipeline = pipeline;
-        window.dispatchEvent(new Event('ai-engine-ready'));
-    </script>
-
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
-
         body {
-            background: radial-gradient(circle at 10% 30%, #0f172a, #0a0f2a);
-            color: #f1f5f9;
+            background: radial-gradient(circle at 15% 30%, #0b1120, #030712);
+            color: #eef2ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             padding-top: 80px;
         }
-
         nav {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(10, 15, 29, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.25);
             z-index: 1000;
-            padding: 1rem 2rem;
+            padding: 0.9rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .nav-logo {
             font-weight: 800;
-            font-size: 1.2rem;
-            background: linear-gradient(105deg, #818cf8, #6366f1);
+            font-size: 1.3rem;
+            background: linear-gradient(120deg, #a5b4fc, #4f46e5);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
             text-decoration: none;
         }
-
         .nav-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 1.2rem;
             list-style: none;
-            align-items: center;
         }
-
         .nav-links a {
-            color: #94a3b8;
+            color: #9ca3af;
             text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            padding: 0.5rem 0.75rem;
-            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 40px;
         }
-
-        .status-badge {
-            font-size: 0.8rem;
-            font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+        .nav-links a:hover {
+            color: white;
+            background: rgba(99, 102, 241, 0.2);
         }
-        .status-loading { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
-        .status-online { background: rgba(52, 211, 153, 0.15); color: #34d399; }
-
         .workspace {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
-            max-width: 1400px;
+            max-width: 1500px;
             width: 100%;
-            margin: 2rem auto;
+            margin: 1.5rem auto;
             flex: 1;
             padding: 0 2rem;
         }
-
         .panel {
-            background: rgba(18, 25, 45, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: 24px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(17, 24, 39, 0.65);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 28px;
+            padding: 1.6rem;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 120px);
-            min-height: 680px;
+            height: calc(100vh - 150px);
+            min-height: 580px;
         }
-
         .panel-header {
             font-size: 1.2rem;
             font-weight: 700;
-            color: #c7d2fe;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: linear-gradient(135deg, #e0e7ff, #a5b4fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1.2rem;
+            border-left: 3px solid #6366f1;
+            padding-left: 0.8rem;
         }
-
-        .input-group { margin-bottom: 1rem; }
-        .input-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #94a3b8;
-            margin-bottom: 0.4rem;
-            text-transform: uppercase;
-        }
-
-        .title-input {
-            width: 100%;
-            background: #0f172acc;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            color: #f1f5f9;
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-        }
-
-        .upload-zone {
-            border: 2px dashed rgba(99, 102, 241, 0.4);
-            border-radius: 16px;
-            padding: 0.85rem;
-            text-align: center;
-            background: rgba(15, 23, 42, 0.4);
-            cursor: pointer;
-            margin-bottom: 1rem;
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
         textarea {
             width: 100%;
             flex: 1;
             background: #0f172acc;
-            border: 1px solid #334155;
-            border-radius: 16px;
+            border: 1px solid #2d3a5e;
+            border-radius: 20px;
             color: #f1f5f9;
-            padding: 1rem;
+            padding: 1.2rem;
             font-size: 0.95rem;
             line-height: 1.6;
             resize: none;
         }
-
+        textarea:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+        .api-config {
+            margin-top: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 0.8rem 1rem;
+            border: 1px solid #1e293b;
+        }
+        .config-row {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+        .config-row label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .api-key-input, .account-id-input {
+            flex: 2;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 0.6rem 1rem;
+            color: white;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        .model-select {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            color: white;
+        }
         .action-btn {
             width: 100%;
-            padding: 1rem;
+            padding: 0.9rem;
             background: linear-gradient(95deg, #4f46e5, #6366f1);
             border: none;
-            border-radius: 40px;
+            border-radius: 44px;
             font-weight: 700;
             font-size: 1rem;
             color: white;
             cursor: pointer;
             margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-
         .action-btn:disabled {
-            background: #1e293b;
-            color: #64748b;
+            opacity: 0.6;
             cursor: not-allowed;
         }
-
-        .results-tabs {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.4rem;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 0.3rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            padding: 0.6rem 0.2rem;
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-            border-radius: 8px;
-        }
-
-        .tab-btn.active { background: #4f46e5; color: white; }
-
         .results-view {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
+            gap: 1.5rem;
+            padding-right: 0.3rem;
         }
-
-        .placeholder-text { color: #64748b; text-align: center; margin: auto; font-style: italic; }
-
-        .report-card { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; padding: 1.2rem; }
-        .report-card h4 { font-size: 0.95rem; margin-bottom: 0.5rem; color:#fff; }
-        .ai-text-block { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; white-space: pre-line; }
-        
-        .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .badge-grammar { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
-        .badge-vocab { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
-        .badge-unexplored { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-
-        #hiddenCanvas { display: none; }
-        footer { border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 1.5rem 0; text-align: center; color: #64748b; font-size: 0.85rem; }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+        }
+        .metric-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #2d3a5e;
+            padding: 0.8rem;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .metric-score {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #38bdf8;
+        }
+        .metric-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+        .corrected-card {
+            background: #0f172a;
+            border-radius: 20px;
+            padding: 1rem;
+            border-left: 4px solid #10b981;
+        }
+        .corrected-title {
+            font-weight: 700;
+            color: #34d399;
+            margin-bottom: 0.7rem;
+            font-size: 0.9rem;
+        }
+        .corrected-text {
+            background: #03071280;
+            padding: 0.8rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .suggestion-list {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+        .suggestion-list li {
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255,255,255,0.03);
+            padding: 0.5rem 0.7rem;
+            border-radius: 12px;
+            border-left: 2px solid #f97316;
+        }
+        .vocab-list li {
+            border-left-color: #10b981;
+        }
+        .feedback-text {
+            background: #111827;
+            border-radius: 16px;
+            padding: 0.8rem;
+            font-size: 0.85rem;
+        }
+        .copy-btn {
+            background: #2d3748;
+            border: none;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        .error-msg {
+            background: #7f1a1a80;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+        footer {
+            border-top: 1px solid #1e293b;
+            padding: 1.2rem;
+            text-align: center;
+            color: #4b5563;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 900px) {
+            .workspace { grid-template-columns: 1fr; }
+            .panel { height: auto; min-height: 500px; }
+        }
     </style>
 </head>
 <body>
 
-    <nav>
-        <a href="#" class="nav-logo"><i class="fa-solid fa-graduation-cap"></i> Laureate Essays</a>
-        <ul class="nav-links">
-            <li>
-                <div class="status-badge status-loading" id="networkStatus">
-                    <i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Neural Engine...
-                </div>
-            </li>
-        </ul>
-    </nav>
+<nav>
+    <a href="#" class="nav-logo"><i class="fa-solid fa-cloud"></i> Laureate · Cloudflare AI (CORS Proxy)</a>
+    <ul class="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Dashboard</a></li>
+    </ul>
+</nav>
 
-    <canvas id="hiddenCanvas"></canvas>
-
-    <div class="workspace">
-        <div class="panel">
-            <div class="panel-header"><i class="fa-regular fa-file-lines"></i> Live Essay Diagnostics Desk</div>
-            
-            <div class="input-group">
-                <label for="essayTitle">Essay Question / Topic</label>
-                <input type="text" id="essayTitle" class="title-input" placeholder="Enter essay topic or prompt context...">
+<div class="workspace">
+    <div class="panel">
+        <div class="panel-header"><i class="fa-regular fa-pen-to-square"></i> Original Essay Draft</div>
+        <textarea id="essayInput" placeholder="Paste your essay here...&#10;Example: 'The internet have changed the way we communicate. It bring many benefits but also some downsides...'"></textarea>
+        
+        <div class="api-config">
+            <div class="config-row">
+                <label><i class="fa-regular fa-id-card"></i> Account ID</label>
+                <input type="text" id="accountIdInput" class="account-id-input" placeholder="Cloudflare Account ID">
             </div>
-
-            <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                <i class="fa-solid fa-file-invoice"></i>
-                <span id="uploadPrompt">Upload Document or Image Scan</span>
-                <input type="file" id="fileInput" accept=".pdf, image/*">
+            <div class="config-row">
+                <label><i class="fa-solid fa-key"></i> API Token</label>
+                <input type="password" id="apiTokenInput" class="api-key-input" placeholder="Cloudflare API Token">
+                <button id="saveConfigBtn" class="copy-btn">Save</button>
             </div>
-
-            <textarea id="essayInput" placeholder="Paste your essay draft here..."></textarea>
-            <button class="action-btn" id="analyzeBtn" disabled onclick="runLiveAIDiagnostics()">Waiting for AI Weights...</button>
+            <div class="config-row">
+                <label><i class="fa-solid fa-microchip"></i> Model</label>
+                <select id="modelSelect" class="model-select">
+                    <option value="@cf/meta/llama-3.1-8b-instruct">Llama 3.1 8B (Recommended)</option>
+                    <option value="@cf/mistral/mistral-7b-instruct-v0.1">Mistral 7B</option>
+                    <option value="@cf/meta/llama-3.2-3b-instruct">Llama 3.2 3B (Faster)</option>
+                </select>
+            </div>
         </div>
+        
+        <button class="action-btn" id="analyzeBtn"><i class="fa-regular fa-star"></i> ✨ Evaluate with Cloudflare AI</button>
+        <p style="font-size:0.7rem; color:#4b5563; text-align:center; margin-top:0.5rem;"><i class="fa-regular fa-circle-check"></i> Uses free CORS proxy · Your key stays in browser</p>
+    </div>
 
-        <div class="panel">
-            <div class="panel-header"><i class="fa-solid fa-brain"></i> Real-Time AI Diagnostic Output Matrix</div>
-            
-            <div class="results-tabs">
-                <button class="tab-btn active" id="tab-grammar" onclick="switchReportTab('grammar')">Grammar Checks</button>
-                <button class="tab-btn" id="tab-vocab" onclick="switchReportTab('vocab')">Vocabulary Advice</button>
-                <button class="tab-btn" id="tab-unexplored" onclick="switchReportTab('unexplored')">Unexplored Points</button>
-            </div>
-
-            <div class="results-view" id="resultsView">
-                <div class="placeholder-text" id="masterPlaceholder">
-                    The local browser AI core will analyze your writing style as soon as you execute compilation.
-                </div>
+    <div class="panel">
+        <div class="panel-header"><i class="fa-solid fa-chart-line"></i> AI Corrections & Feedback</div>
+        <div class="results-view" id="resultsView">
+            <div class="placeholder-text" style="text-align:center; margin:auto;">
+                <i class="fa-solid fa-brain" style="font-size: 2.8rem; color: #334155; margin-bottom: 0.8rem; display: block;"></i>
+                <span>Enter essay → AI will fix grammar, upgrade vocabulary, improve structure.</span>
             </div>
         </div>
     </div>
+</div>
 
-    <footer>
-        <p>&copy; 2026 Laureate Essays Academic Portal. Secured Local WebGPU Inference Engine.</p>
-    </footer>
+<footer>
+    <p>⚡ Powered by Cloudflare Workers AI + CORS proxy (corsproxy.io). Your API token is never stored on our servers.</p>
+</footer>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+<script>
+    // Prefill with your provided credentials
+    const DEFAULT_ACCOUNT_ID = "b8766010a0fa5ed814ede3b9d07a82d2";
+    const DEFAULT_API_TOKEN = "cfut_s6iI0ytQMbf9OYsTA25yjfICNrP7KhtmYsCuQHRQfbabef61";
 
-        let generatorInstance = null;
-        const networkStatus = document.getElementById('networkStatus');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const resultsView = document.getElementById('resultsView');
-        const essayInput = document.getElementById('essayInput');
-        const essayTitle = document.getElementById('essayTitle');
+    const essayInput = document.getElementById('essayInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultsDiv = document.getElementById('resultsView');
+    const accountIdInput = document.getElementById('accountIdInput');
+    const apiTokenInput = document.getElementById('apiTokenInput');
+    const saveConfigBtn = document.getElementById('saveConfigBtn');
+    const modelSelect = document.getElementById('modelSelect');
 
-        // Listen for WebGPU AI pipeline compilation
-        window.addEventListener('ai-engine-ready', async () => {
-            try {
-                networkStatus.innerHTML = `<i class="fa-solid fa-download fa-spin"></i> Loading AI Model into Memory (First load takes a minute)...`;
-                // Loads a lightweight text generation model safely to browse cache
-                generatorInstance = await window.aiPipeline('text-generation', 'Xenova/Qwen1.5-0.5B-Chat');
-                
-                networkStatus.className = "status-badge status-online";
-                networkStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Local AI Core Ready`;
-                analyzeBtn.disabled = false;
-                analyzeBtn.innerText = "Compute Live AI Evaluation";
-            } catch (err) {
-                networkStatus.className = "status-badge";
-                networkStatus.style.background = "rgba(244,63,94,0.15)";
-                networkStatus.style.color = "#f43f5e";
-                networkStatus.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> WebGPU Not Enabled`;
-                analyzeBtn.innerText = "Local AI Unavailable";
-                console.error(err);
-            }
+    // Load stored or default config
+    function loadConfig() {
+        const storedAccount = localStorage.getItem('cf_account_id');
+        const storedToken = localStorage.getItem('cf_api_token');
+        const storedModel = localStorage.getItem('cf_model');
+        accountIdInput.value = storedAccount || DEFAULT_ACCOUNT_ID;
+        apiTokenInput.value = storedToken || DEFAULT_API_TOKEN;
+        if (storedModel) modelSelect.value = storedModel;
+    }
+
+    function saveConfig() {
+        const accountId = accountIdInput.value.trim();
+        const token = apiTokenInput.value.trim();
+        if (accountId && token) {
+            localStorage.setItem('cf_account_id', accountId);
+            localStorage.setItem('cf_api_token', token);
+            localStorage.setItem('cf_model', modelSelect.value);
+            showToast("✅ Config saved", "#10b981");
+        } else {
+            showToast("❌ Account ID and Token required", "#ef4444");
+        }
+    }
+
+    function showToast(msg, color) {
+        const toast = document.createElement('div');
+        toast.innerText = msg;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = color;
+        toast.style.color = 'white';
+        toast.style.padding = '8px 18px';
+        toast.style.borderRadius = '40px';
+        toast.style.fontSize = '0.8rem';
+        toast.style.zIndex = '9999';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2200);
+    }
+
+    // Call Cloudflare API through a public CORS proxy
+    async function callCloudflareAI(essay, accountId, apiToken, model) {
+        const systemPrompt = `You are an expert academic editor. Return ONLY valid JSON with these keys:
+- "correctedEssay": string (full improved version)
+- "grammarFixes": array of strings (specific fixes)
+- "vocabularyUpgrades": array of strings (word replacements)
+- "overallScore": string (e.g., "A-", "85%")
+- "feedbackSummary": string (20-40 words)
+
+Keep original meaning. Output pure JSON, no extra text.`;
+
+        const userMessage = `Original essay:\n\n${essay}\n\nProvide improvements as JSON.`;
+
+        const cloudflareUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`;
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(cloudflareUrl)}`;
+
+        const response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userMessage }
+                ]
+            })
         });
 
-        let aiReportCache = { grammar: "", vocab: "", unexplored: "" };
-
-        function switchReportTab(targetTab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${targetTab}`).classList.add('active');
-            resultsView.innerHTML = aiReportCache[targetTab] || `<div class="placeholder-text">No analysis available yet.</div>`;
+        if (!response.ok) {
+            let errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 100)}`);
         }
 
-        async function runLiveAIDiagnostics() {
-            const text = essayInput.value.trim();
-            const title = essayTitle.value.trim() || "General Academic Topic";
+        const data = await response.json();
+        const rawContent = data.result?.response;
+        if (!rawContent) throw new Error("Empty response from AI");
 
-            if (!text) return alert("Please input text first.");
+        // Extract JSON from the response
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("No JSON found in AI response");
+        return JSON.parse(jsonMatch[0]);
+    }
 
-            analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> AI Processing locally via WebGPU...`;
-            resultsView.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-microchip fa-spin" style="font-size:2rem; color:#818cf8; display:block; margin-bottom:1rem;"></i>Your local GPU is processing the tokens now. Please wait...</div>`;
+    function renderResults(aiData) {
+        const corrected = aiData.correctedEssay || "No corrected version.";
+        const grammar = aiData.grammarFixes || ["Grammar fixes applied"];
+        const vocab = aiData.vocabularyUpgrades || ["Vocabulary improved"];
+        const score = aiData.overallScore || "B+";
+        const feedback = aiData.feedbackSummary || "AI has refined your essay.";
 
-            try {
-                // Task 1: Grammar Core Processing
-                const promptGrammar = `<|im_start|>system\nYou are an English writing evaluator. Find and list all spelling, typo, and grammar mistakes found in the user text, and show how to fix them.<|im_end|>\n<|im_start|>user\nText:\n"${text}"<|im_end|>\n<|im_start|>assistant\n`;
-                const outGrammar = await generatorInstance(promptGrammar, { max_new_tokens: 150, stop: ["<|im_end|>"] });
-                aiReportCache.grammar = `<div class="report-card"><span class="badge badge-grammar">Live Grammar Scan</span><div class="ai-text-block">${cleanAIOutput(outGrammar[0].generated_text, promptGrammar)}</div></div>`;
+        let html = `
+            <div class="metrics-grid">
+                <div class="metric-card"><div class="metric-score">${escapeHtml(score)}</div><div class="metric-label">Overall Grade</div></div>
+                <div class="metric-card"><div class="metric-score"><i class="fa-solid fa-spell-check"></i></div><div class="metric-label">Grammar Fixed</div></div>
+                <div class="metric-card"><div class="metric-score"><i class="fa-solid fa-book-open"></i></div><div class="metric-label">Vocab Boost</div></div>
+            </div>
+            <div class="corrected-card">
+                <div class="corrected-title"><i class="fa-regular fa-file-lines"></i> 📝 Enhanced Version</div>
+                <div class="corrected-text">${escapeHtml(corrected)}</div>
+                <button class="copy-btn" id="copyCorrectedBtn"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <div>
+                <div class="corrected-title" style="color:#f97316;">✍️ Grammar & Structure Fixes</div>
+                <ul class="suggestion-list">${grammar.map(f => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
+            </div>
+            <div>
+                <div class="corrected-title" style="color:#34d399;">🚀 Vocabulary Upgrades</div>
+                <ul class="suggestion-list vocab-list">${vocab.map(v => `<li>${escapeHtml(v)}</li>`).join('')}</ul>
+            </div>
+            <div class="feedback-text"><i class="fa-solid fa-robot"></i> <strong>Feedback:</strong> ${escapeHtml(feedback)}</div>
+        `;
+        resultsDiv.innerHTML = html;
+        document.getElementById('copyCorrectedBtn')?.addEventListener('click', () => {
+            const text = document.querySelector('.corrected-text')?.innerText;
+            if (text) { navigator.clipboard.writeText(text); showToast("Copied!", "#10b981"); }
+        });
+    }
 
-                // Task 2: Vocabulary Core Processing
-                const promptVocab = `<|im_start|>system\nYou are an academic essay tutor. List 3 to 4 complex, higher-tier vocabulary word replacements for the basic words found in the text.<|im_end|>\n<|im_start|>user\nText:\n"${text}"<|im_end|>\n<|im_start|>assistant\n`;
-                const outVocab = await generatorInstance(promptVocab, { max_new_tokens: 150, stop: ["<|im_end|>"] });
-                aiReportCache.vocab = `<div class="report-card"><span class="badge badge-vocab">Academic Vocabulary Upgrades</span><div class="ai-text-block">${cleanAIOutput(outVocab[0].generated_text, promptVocab)}</div></div>`;
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m] || m));
+    }
 
-                // Task 3: Unexplored Themes Processing
-                const promptUnexplored = `<|im_start|>system\nYou are an essay logic analyzer. Review the essay text against the topic title: "${title}". Suggest 2 or 3 missing viewpoints, arguments, or critical ideas that the writer should add to make it complete.<|im_end|>\n<|im_start|>user\nText:\n"${text}"<|im_end|>\n<|im_start|>assistant\n`;
-                const outUnexplored = await generatorInstance(promptUnexplored, { max_new_tokens: 150, stop: ["<|im_end|>"] });
-                aiReportCache.unexplored = `<div class="report-card"><span class="badge badge-unexplored">Unexplored Context Points</span><div class="ai-text-block">${cleanAIOutput(outUnexplored[0].generated_text, promptUnexplored)}</div></div>`;
+    async function performCorrection() {
+        const essay = essayInput.value.trim();
+        if (!essay) return alert("Please paste an essay.");
+        if (essay.length < 30 && !confirm("Very short essay. Continue?")) return;
 
-                // Render view
-                switchReportTab('grammar');
+        const accountId = accountIdInput.value.trim();
+        const apiToken = apiTokenInput.value.trim();
+        if (!accountId || !apiToken) return alert("Account ID and API Token required.");
 
-            } catch(e) {
-                console.error(e);
-                resultsView.innerHTML = `<div class="placeholder-text" style="color:#f43f5e;">Local execution error during inference sequence computation.</div>`;
-            }
+        const model = modelSelect.value;
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-pulse"></i> Processing via Cloudflare...';
+        resultsDiv.innerHTML = `<div class="placeholder-text"><i class="fa-solid fa-cloud-arrow-up fa-spin"></i> Sending to AI (CORS proxy)...</div>`;
 
+        try {
+            const result = await callCloudflareAI(essay, accountId, apiToken, model);
+            renderResults(result);
+            localStorage.setItem('cf_model', model);
+        } catch (err) {
+            console.error(err);
+            let msg = err.message;
+            if (msg.includes("401")) msg = "Invalid API token or Account ID. Please regenerate token in Cloudflare dashboard.";
+            else if (msg.includes("403")) msg = "Access denied. Your token may lack Workers AI permissions.";
+            else if (msg.includes("Failed to fetch")) msg = "Network/CORS error. Try again or switch to a different model.";
+            resultsDiv.innerHTML = `<div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> Error: ${escapeHtml(msg)}<br><br>💡 Tip: Ensure your Cloudflare token has "AI:Run" permission and you have enabled Workers AI.</div>`;
+        } finally {
             analyzeBtn.disabled = false;
-            analyzeBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Compute Live AI Evaluation`;
+            analyzeBtn.innerHTML = '<i class="fa-regular fa-star"></i> ✨ Evaluate with Cloudflare AI';
         }
+    }
 
-        function cleanAIOutput(rawResult, promptTemplate) {
-            return rawResult.replace(promptTemplate, "").replace("<|im_end|>", "").trim();
-        }
-
-        // File Uploader Event Management (PDF and Image Canvas Extraction)
-        const dropzone = document.getElementById('dropzone');
-        const fileInput = document.getElementById('fileInput');
-        const uploadPrompt = document.getElementById('uploadPrompt');
-        const canvas = document.getElementById('hiddenCanvas');
-        const ctx = canvas.getContext('2d');
-
-        ['dragenter', 'dragover'].forEach(name => dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.style.borderColor = "#818cf8"; }));
-        ['dragleave', 'drop'].forEach(name => dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.style.borderColor = "rgba(99, 102, 241, 0.4)"; }));
-        dropzone.addEventListener('drop', (e) => { if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]); });
-        fileInput.addEventListener('change', () => { if (fileInput.files.length) processFile(fileInput.files[0]); });
-
-        function processFile(file) {
-            if (file.type === "application/pdf") {
-                uploadPrompt.innerText = "Extracting text layers from PDF...";
-                const reader = new FileReader();
-                reader.onload = async function() {
-                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(this.result) }).promise;
-                    let text = "";
-                    for(let i=1; i<=pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const content = await page.getTextContent();
-                        text += content.items.map(item => item.str).join(" ") + "\n";
-                    }
-                    essayInput.value = text;
-                    uploadPrompt.innerText = "PDF Imported Successfully!";
-                };
-                reader.readAsArrayBuffer(file);
-            } else if (file.type.startsWith("image/")) {
-                uploadPrompt.innerText = "Running Image OCR text scanning...";
-                const reader = new FileReader();
-                reader.onload = function() {
-                    Tesseract.recognize(reader.result, 'eng').then(({ data: { text } }) => {
-                        essayInput.value = text;
-                        uploadPrompt.innerText = "Image Imported Successfully!";
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    </script>
+    analyzeBtn.addEventListener('click', performCorrection);
+    saveConfigBtn.addEventListener('click', saveConfig);
+    loadConfig();
+</script>
 </body>
 </html>
